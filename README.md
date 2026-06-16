@@ -2,8 +2,6 @@
 
 EcoQuest is an interactive, single-page web application designed to make carbon footprint tracking engaging and fun. By incorporating gamification elements like XP, levels, badges, and leaderboards, it motivates users to build sustainable habits and reduce their environmental impact.
 
-![EcoQuest Screenshot](https://user-images.githubusercontent.com/your-username/your-repo/ecoquest-screenshot.png) 
-*(Note: You should replace the image URL above with a real screenshot of your application.)*
 
 ---
 
