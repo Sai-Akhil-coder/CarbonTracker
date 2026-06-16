@@ -1,0 +1,2510 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoQuest — Carbon Tracker</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      --g50: #E1F5EE;
+      --g100: #9FE1CB;
+      --g300: #4DC4A0;
+      --g500: #1D9E75;
+      --g700: #0F6E56;
+      --g900: #085041;
+      --b500: #378ADD;
+      --b800: #0C447C;
+      --am: #BA7517;
+      --am1: #FAEEDA;
+      --am2: #FAC775;
+      --r500: #E24B4A;
+      --r100: #FCEBEB;
+      --pur: #7F77DD;
+      --pur1: #EEEDFE;
+      --gold: #F4A800;
+      --gold1: #FEF3D0;
+      --silver: #8A9BB5;
+      --silver1: #EEF1F6;
+      --bronze: #C17B44;
+      --bronze1: #F7EDE3;
+      --gray50: #F7F7F5;
+      --gray100: #EEECEA;
+      --gray200: #D3D1C7;
+      --gray400: #888780;
+      --gray700: #5F5E5A;
+      --text: #1a1a18;
+      --muted: #5F5E5A;
+      --faint: #888780;
+      --bg: #F0F4F2;
+      --surf: #ffffff;
+      --border: rgba(0, 0, 0, 0.08);
+      --border2: rgba(0, 0, 0, 0.14);
+      --rad: 16px;
+      --radsm: 12px;
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+    }
+
+    @media(prefers-color-scheme:dark) {
+      :root {
+        --g50: #0D2A22;
+        --g100: #1A4A38;
+        --g300: #2A7A5C;
+        --g500: #2DC08E;
+        --g700: #5FD4A8;
+        --g900: #9FE1CB;
+        --b500: #5FA8E8;
+        --b800: #B5D4F4;
+        --am: #EF9F27;
+        --am1: #2A1E06;
+        --am2: #633806;
+        --r500: #F09595;
+        --r100: #2A0A0A;
+        --pur: #AFA9EC;
+        --pur1: #1E1C3A;
+        --gold: #F4C030;
+        --gold1: #2A2000;
+        --silver: #B0BFCD;
+        --silver1: #1A2028;
+        --bronze: #D8975A;
+        --bronze1: #281408;
+        --gray50: #1C1C1A;
+        --gray100: #2C2C2A;
+        --gray200: #444441;
+        --gray400: #888780;
+        --gray700: #B4B2A9;
+        --text: #F1EFE8;
+        --muted: #B4B2A9;
+        --faint: #888780;
+        --bg: #121412;
+        --surf: #1C1C1A;
+        --border: rgba(255, 255, 255, 0.08);
+        --border2: rgba(255, 255, 255, 0.14);
+        --shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* ── AUTH SCREEN ── */
+    #auth-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .auth-box {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .auth-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+      justify-content: center;
+    }
+
+    .auth-logo-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--g500);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .auth-logo-text {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .auth-logo-sub {
+      font-size: 11px;
+      color: var(--faint);
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .auth-tabs {
+      display: flex;
+      background: var(--gray100);
+      border-radius: var(--radsm);
+      padding: 3px;
+      margin-bottom: 1.5rem;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 7px;
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      background: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all .15s;
+    }
+
+    .auth-tab.active {
+      background: var(--surf);
+      color: var(--text);
+      box-shadow: var(--shadow);
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--faint);
+      margin-bottom: 5px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      border: 1px solid var(--border2);
+      border-radius: var(--radsm);
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    .field input:focus {
+      border-color: var(--g500);
+    }
+
+    .auth-btn {
+      width: 100%;
+      padding: 11px;
+      font-size: 15px;
+      font-weight: 600;
+      background: var(--g500);
+      color: white;
+      border: none;
+      border-radius: var(--radsm);
+      cursor: pointer;
+      margin-top: 4px;
+      transition: opacity .15s;
+    }
+
+    .auth-btn:hover {
+      opacity: .9;
+    }
+
+    .auth-err {
+      font-size: 13px;
+      color: var(--r500);
+      margin-top: 8px;
+      text-align: center;
+      min-height: 20px;
+    }
+
+    .auth-panel {
+      display: none;
+    }
+
+    .auth-panel.active {
+      display: block;
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 18px 0 12px;
+      color: var(--faint);
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .auth-divider::before, .auth-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .auth-divider::before { margin-right: 12px; }
+    .auth-divider::after { margin-left: 12px; }
+
+    .google-btn {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      background: var(--surf);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      border-radius: var(--radsm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background .15s, border-color .15s;
+    }
+
+    .google-btn:hover {
+      background: var(--bg);
+      border-color: var(--border);
+    }
+
+    .google-icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--text);
+      color: var(--surf);
+      padding: 10px 20px;
+      border-radius: 99px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 9999;
+      transition: transform .3s cubic-bezier(.34, 1.56, .64, 1);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--surf);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 780px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 30px;
+      height: 30px;
+      background: var(--g500);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .xp-pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 11px;
+      border-radius: 99px;
+      background: var(--gold1);
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .avatar-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--g500);
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── MAIN ── */
+    main {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 1.5rem 1.5rem 5rem;
+    }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      background: none;
+      padding: 0;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab {
+      flex: none;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all .2s;
+    }
+
+    .tab.active {
+      background: var(--text);
+      color: var(--surf);
+      border-color: var(--text);
+      box-shadow: var(--shadow);
+    }
+
+    .tab svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surf);
+      border: none;
+      border-radius: var(--rad);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      text-transform: none;
+      color: var(--text);
+      margin-bottom: 1.25rem;
+    }
+
+    /* ── LEVEL BANNER ── */
+    .level-banner {
+      background: linear-gradient(135deg, var(--g700), var(--g500));
+      border-radius: var(--rad);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .level-badge {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      border: 2px solid rgba(255, 255, 255, .4);
+      animation: pulse-bounce 3s infinite ease-in-out;
+    }
+
+    .level-info {
+      flex: 1;
+    }
+
+    .level-name {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .level-sub {
+      font-size: 12px;
+      opacity: .8;
+      margin-bottom: 8px;
+    }
+
+    .xp-bar-track {
+      height: 6px;
+      background: rgba(255, 255, 255, .25);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .xp-bar-fill {
+      height: 100%;
+      background: white;
+      border-radius: 99px;
+      transition: width .6s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .xp-label {
+      font-size: 11px;
+      opacity: .75;
+      margin-top: 4px;
+    }
+
+    .level-streak {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .streak-num {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .streak-label {
+      font-size: 11px;
+      opacity: .75;
+    }
+
+    /* ── METRIC GRID ── */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+
+    @media(min-width:500px) {
+      .metric-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .metric {
+      background: var(--gray50);
+      border: none;
+      border-radius: var(--radsm);
+      padding: 1.25rem;
+      box-shadow: none;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--faint);
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+
+    .metric-sub {
+      font-size: 11px;
+      color: var(--faint);
+    }
+
+    /* ── RING ── */
+    .ring-wrap {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 1rem 0 .5rem;
+    }
+
+    .ring-total {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .ring-unit {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .ring-compare {
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    /* ── SLIDERS ── */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--gray50);
+    }
+
+    .slider-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .sl-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 15px;
+    }
+
+    .sl-label {
+      flex: 0 0 108px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .sl-track {
+      flex: 1;
+    }
+
+    input[type=range] {
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      background: var(--gray200);
+      border-radius: 99px;
+      outline: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--g500);
+      cursor: pointer;
+      border: 2px solid var(--surf);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
+      transition: transform .1s;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    input[type=range]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--g500);
+      cursor: pointer;
+      border: 2px solid var(--surf);
+    }
+
+    .sl-val {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      min-width: 68px;
+      text-align: right;
+    }
+
+    .sl-track select {
+      width: 100%;
+      padding: 6px 10px;
+      border-radius: var(--radsm);
+      border: 1px solid var(--border2);
+      background: var(--surf);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+
+    /* ── BARS ── */
+    .bar-row {
+      margin-bottom: 12px;
+    }
+
+    .bar-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .bar-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
+    .bar-name {
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .bar-amt {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .bar-track {
+      height: 7px;
+      background: var(--gray100);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .4s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    /* ── ACTIONS ── */
+    .action-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: var(--gray50);
+      border: none;
+      border-radius: var(--radsm);
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      box-shadow: none;
+      user-select: none;
+    }
+
+    .action-item:hover {
+      background: var(--gray100);
+      transform: translateY(-2px);
+    }
+
+    .action-item.done {
+      opacity: .6;
+    }
+
+    .action-item.done .action-text {
+      text-decoration: line-through;
+      color: var(--faint);
+    }
+
+    .check-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--gray200);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s;
+    }
+
+    .action-item.done .check-circle {
+      background: var(--g500);
+      border-color: var(--g500);
+      color: white;
+    }
+
+    .action-text {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .action-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .action-saving {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--g700);
+    }
+
+    .action-xp {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold);
+      background: var(--gold1);
+      padding: 2px 7px;
+      border-radius: 99px;
+    }
+
+    /* ── BADGES ── */
+    .badge-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    @media(min-width:500px) {
+      .badge-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .badge-card {
+      background: var(--gray50);
+      border: none;
+      border-radius: var(--radsm);
+      padding: 16px 12px;
+      text-align: center;
+      box-shadow: none;
+      transition: transform .2s;
+    }
+
+    .badge-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .badge-card.locked {
+      opacity: .4;
+      filter: grayscale(1);
+    }
+
+    .badge-emoji {
+      font-size: 30px;
+      margin-bottom: 6px;
+    }
+
+    .badge-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .badge-desc {
+      font-size: 11px;
+      color: var(--faint);
+      line-height: 1.4;
+    }
+
+    .badge-earned {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--g700);
+      background: var(--g50);
+      padding: 2px 6px;
+      border-radius: 99px;
+      margin-top: 5px;
+      display: inline-block;
+    }
+
+    /* ── LEADERBOARD ── */
+    .lb-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .lb-row:last-child {
+      border-bottom: none;
+    }
+
+    .lb-rank {
+      width: 28px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--faint);
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .lb-rank.gold {
+      color: var(--gold);
+    }
+
+    .lb-rank.silver {
+      color: var(--silver);
+    }
+
+    .lb-rank.bronze {
+      color: var(--bronze);
+    }
+
+    .lb-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .lb-name {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .lb-name small {
+      display: block;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--faint);
+    }
+
+    .lb-xp {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .lb-you {
+      background: var(--g50);
+      border-radius: var(--radsm);
+      padding: 0 8px;
+      margin: 0 -8px;
+    }
+
+    /* ── COMPARE ── */
+    .compare-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .compare-row:last-child {
+      border-bottom: none;
+    }
+
+    .compare-cat {
+      font-size: 12px;
+      color: var(--muted);
+      flex: 0 0 82px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .compare-bars-wrap {
+      flex: 1;
+    }
+
+    .compare-track {
+      height: 5px;
+      background: var(--gray100);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 3px;
+    }
+
+    .cbar-you {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--b500);
+      transition: width .4s;
+    }
+
+    .cbar-avg {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--gray400);
+      transition: width .4s;
+    }
+
+    .compare-val {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      flex: 0 0 38px;
+      text-align: right;
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    /* ── TIP ── */
+    .tip-highlight {
+      border-radius: var(--rad);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 14px;
+      border: 1px solid var(--border);
+    }
+
+    .tip-icon-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .tip-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .tip-body {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .impact-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 99px;
+      margin-top: 8px;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 11px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--g900);
+      background: var(--g50);
+      border: 1px solid var(--g100);
+      border-radius: var(--radsm);
+      cursor: pointer;
+      text-align: center;
+      transition: all .15s;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: var(--g100);
+    }
+
+    .summary-bar {
+      background: var(--g50);
+      border: 1px solid var(--g100);
+      border-radius: var(--radsm);
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--g900);
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── CHALLENGE ── */
+    .challenge-card {
+      background: linear-gradient(135deg, var(--pur1), var(--g50));
+      border: none;
+      border-radius: var(--rad);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .challenge-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: .75rem;
+    }
+
+    .challenge-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .challenge-badge {
+      font-size: 12px;
+      font-weight: 700;
+      background: var(--pur);
+      color: white;
+      padding: 3px 10px;
+      border-radius: 99px;
+    }
+
+    .challenge-body {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .challenge-progress-track {
+      height: 8px;
+      background: rgba(127, 119, 221, .2);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .challenge-progress-fill {
+      height: 100%;
+      background: var(--pur);
+      border-radius: 99px;
+      transition: width .4s;
+    }
+
+    .challenge-footer {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--faint);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:480px) {
+      .sl-label {
+        flex: 0 0 80px;
+        font-size: 12px;
+      }
+
+      .tab span {
+        display: none;
+      }
+    }
+
+    /* ── CONFETTI ── */
+    .confetti-piece {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 9998;
+      animation: fall 1.2s ease-in forwards;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-20px) rotate(0deg);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
+    /* ── MODALS ── */
+    #proof-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      backdrop-filter: blur(4px);
+    }
+
+    #proof-modal.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--surf);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 400px;
+      overflow: hidden;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--muted);
+      line-height: 1;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-footer {
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid var(--border);
+      background: var(--gray50);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .proof-preview {
+      width: 100%;
+      height: 180px;
+      background: var(--bg);
+      border-radius: var(--radsm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+      padding: 1rem;
+      border: 2px dashed var(--border2);
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .proof-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    @keyframes pulse-bounce {
+      0%, 100% { transform: scale(1) translateY(0); }
+      50% { transform: scale(1.1) translateY(-4px); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen">
+    <div class="auth-box">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">🌿</div>
+        <div class="auth-logo-text">EcoQuest</div>
+      </div>
+      <p class="auth-logo-sub">Track your carbon footprint. Earn rewards. Save the planet.</p>
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="authTab('login')">Sign in</button>
+        <button class="auth-tab" onclick="authTab('signup')">Create account</button>
+      </div>
+      <!-- LOGIN -->
+      <div class="auth-panel active" id="ap-login">
+        <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com"></div>
+        <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••"></div>
+        <button class="auth-btn" onclick="doLogin()">Sign in →</button>
+        <p class="auth-err" id="login-err"></p>
+        <p style="font-size:12px;color:var(--faint);text-align:center;margin-top:12px;">Demo: any email + any password
+          works</p>
+      </div>
+      <!-- SIGNUP -->
+      <div class="auth-panel" id="ap-signup">
+        <div class="field"><label>Your name</label><input type="text" id="su-name" placeholder="e.g. Priya Sharma">
+        </div>
+        <div class="field"><label>Email</label><input type="email" id="su-email" placeholder="you@example.com"></div>
+        <div class="field"><label>Password</label><input type="password" id="su-pass"
+            placeholder="At least 8 characters"></div>
+        <button class="auth-btn" onclick="doSignup()">Create account →</button>
+        <p class="auth-err" id="su-err"></p>
+      </div>
+      <!-- GOOGLE AUTH -->
+      <div class="auth-divider">or</div>
+      <button class="google-btn" onclick="doGoogleAuth()">
+        <svg class="google-icon" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Continue with Google
+      </button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast"></div>
+
+  <!-- PROOF MODAL -->
+  <div id="proof-modal">
+    <div class="modal-box">
+      <div class="modal-header"><span id="modal-title">Verify Action</span><button class="modal-close"
+          onclick="closeProofModal()">&times;</button></div>
+      <div class="modal-body" id="modal-body-content"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" style="width:auto;padding:8px 16px;background:var(--surf);"
+          onclick="closeProofModal()">Cancel</button>
+        <button class="btn" style="width:auto;padding:8px 16px;background:var(--g500);color:white;"
+          id="modal-verify-btn">Verify</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app" style="display:none;">
+    <header>
+      <div class="header-inner">
+        <a class="logo" href="#">
+          <div class="logo-icon">🌿</div>
+          EcoQuest
+        </a>
+        <div class="header-right">
+          <div class="xp-pill">⚡ <span id="hdr-xp">0</span> XP</div>
+          <button class="avatar-btn" id="avatar-btn" onclick="document.getElementById('tab-profile-btn').click()" title="Profile"></button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- TABS -->
+      <div class="tabs" role="tablist">
+        <button class="tab active" onclick="switchTab('footprint',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 2a10 10 0 0 1 0 20" />
+            <path d="M2 12h20" />
+          </svg>
+          <span>Footprint</span>
+        </button>
+        <button class="tab" onclick="switchTab('actions',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 11l3 3L22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+          <span>Actions</span>
+        </button>
+        <button class="tab" onclick="switchTab('badges',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+          <span>Badges</span>
+        </button>
+        <button class="tab" onclick="switchTab('leaderboard',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          <span>Ranks</span>
+        </button>
+        <button class="tab" id="tab-profile-btn" onclick="switchTab('profile',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>Profile</span>
+        </button>
+      </div>
+
+      <!-- FOOTPRINT PANEL -->
+      <div id="panel-footprint" class="panel active">
+        <div class="level-banner" id="level-banner">
+          <div id="mascot-container" style="position: relative; display: none; flex-direction: column; align-items: center; justify-content: flex-end; margin-right: -10px;">
+            <div id="mascot-speech" style="position: absolute; bottom: 100%; background: var(--surf); border: 2px solid var(--g300); border-radius: 16px 16px 0 16px; padding: 12px; margin-bottom: 8px; box-shadow: var(--shadow); font-size: 13px; font-weight: 600; color: var(--text); max-width: 180px; display: none; text-align: center; z-index: 1;">
+              Great job!
+            </div>
+            <div id="mascot" style="font-size: 52px; cursor: pointer; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); animation: pulse-bounce 4s infinite ease-in-out;" onclick="motivateUser()">
+              🦊
+            </div>
+          </div>
+          <div class="level-badge" id="lvl-emoji">🌱</div>
+          <div class="level-info">
+            <div class="level-name" id="lvl-name">Seedling</div>
+            <div class="level-sub" id="lvl-sub">Level 1 · Keep going!</div>
+            <div class="xp-bar-track">
+              <div class="xp-bar-fill" id="xp-bar" style="width:0%"></div>
+            </div>
+            <div class="xp-label" id="xp-label">0 / 100 XP to next level</div>
+          </div>
+          <div class="level-streak">
+            <div class="streak-num" id="streak-num">0</div>
+            <div class="streak-label">🔥 day streak</div>
+          </div>
+        </div>
+
+        <div class="metric-grid" id="metric-grid"></div>
+
+        <div class="card">
+          <p class="card-title">Emissions by category</p>
+          <div class="ring-wrap">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="32" fill="none" stroke="var(--gray100)" stroke-width="8" />
+              <circle id="ring-circle" cx="40" cy="40" r="32" fill="none" stroke="var(--g500)" stroke-width="8"
+                stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="201" transform="rotate(-90 40 40)"
+                style="transition:stroke-dashoffset .5s,stroke .3s;" />
+            </svg>
+            <div>
+              <div class="ring-total" id="ring-total">—</div>
+              <div class="ring-unit">tonnes CO₂ / year</div>
+              <div class="ring-compare" id="ring-compare"></div>
+            </div>
+          </div>
+          <div id="bars" style="margin-top:1rem;"></div>
+        </div>
+
+        <div class="card" style="background: linear-gradient(135deg, var(--pur1), var(--surf)); border-color: var(--pur);">
+          <p class="card-title" style="color: var(--pur);">✨ AI Receipt Scanner</p>
+          <p style="font-size:13px; color:var(--muted); margin-bottom:12px;">Scan a grocery or shopping receipt to estimate the carbon emissions of your purchases.</p>
+          <button class="btn" style="background:var(--pur); color:white; border:none;" onclick="openReceiptScanner()">🧾 Scan Receipt for Carbon Impact</button>
+        </div>
+
+        <div class="card">
+          <p class="card-title">Adjust your lifestyle</p>
+          <div class="slider-row">
+            <div class="sl-icon" style="background:#E6F1FB;">🚙</div>
+            <div class="sl-label">Vehicle Type</div>
+            <div class="sl-track">
+              <select id="sl-veh-type" onchange="update()">
+                <option value="4wheeler">4 Wheeler (Petrol/Diesel)</option>
+                <option value="2wheeler">2 Wheeler (Bike/Scooter)</option>
+                <option value="ev">Electric Vehicle (EV)</option>
+                <option value="public">Public Transport (Bus/Train)</option>
+              </select>
+            </div>
+          </div>
+          <div class="slider-row">
+            <div class="sl-icon" id="driving-icon" style="background:#E6F1FB;">🚗</div>
+            <div class="sl-label">Driving</div>
+            <div class="sl-track"><input type="range" id="sl-car" min="0" max="600" step="10" value="200"
+                oninput="update()"></div>
+            <div class="sl-val" id="v-car">200 km/wk</div>
+          </div>
+          <div class="slider-row">
+            <div class="sl-icon" style="background:#FAECE7;">✈️</div>
+            <div class="sl-label">Flights/year</div>
+            <div class="sl-track"><input type="range" id="sl-fly" min="0" max="12" step="1" value="2"
+                oninput="update()"></div>
+            <div class="sl-val" id="v-fly">2 flights</div>
+          </div>
+          <div class="slider-row">
+            <div class="sl-icon" style="background:#EAF3DE;">🥩</div>
+            <div class="sl-label">Meat meals/wk</div>
+            <div class="sl-track"><input type="range" id="sl-meat" min="0" max="21" step="1" value="7"
+                oninput="update()"></div>
+            <div class="sl-val" id="v-meat">7 meals</div>
+          </div>
+          <div class="slider-row">
+            <div class="sl-icon" style="background:#FAEEDA;">🏠</div>
+            <div class="sl-label">Home energy</div>
+            <div class="sl-track"><input type="range" id="sl-home" min="0" max="4" step="1" value="2"
+                oninput="update()"></div>
+            <div class="sl-val" id="v-home">Medium</div>
+          </div>
+          <div class="slider-row">
+            <div class="sl-icon" style="background:#FEF3D0;">💡</div>
+            <div class="sl-label">Electricity/mo</div>
+            <div class="sl-track"><input type="range" id="sl-elec" min="0" max="10000" step="100" value="1500"
+                oninput="update()"></div>
+            <div class="sl-val" id="v-elec">₹1,500</div>
+          </div>
+          <div class="slider-row">
+            <div class="sl-icon" style="background:#EEEDFE;">🛍️</div>
+            <div class="sl-label">Shopping/mo</div>
+            <div class="sl-track"><input type="range" id="sl-shop" min="0" max="50000" step="1000" value="10000"
+                oninput="update()"></div>
+            <div class="sl-val" id="v-shop">₹10,000</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIONS PANEL -->
+      <div id="panel-actions" class="panel">
+        <div class="challenge-card">
+          <div class="challenge-header">
+            <div class="challenge-title">🏆 Weekly Challenge</div>
+            <div class="challenge-badge" id="ch-badge">+150 XP</div>
+          </div>
+          <div class="challenge-body" id="ch-body">Complete 5 actions this week to earn the Green Warrior badge and
+            bonus XP!</div>
+          <div class="challenge-progress-track">
+            <div class="challenge-progress-fill" id="ch-fill" style="width:0%"></div>
+          </div>
+          <div class="challenge-footer"><span id="ch-progress">0 / 5 actions</span><span id="ch-status">In
+              progress</span></div>
+        </div>
+
+        <div class="challenge-card" style="background: linear-gradient(135deg, var(--b800), var(--b500)); border-color: var(--b800);">
+          <div class="challenge-header">
+            <div class="challenge-title" style="color: white;">🌍 Monthly Global Event</div>
+            <div class="challenge-badge" style="background: rgba(255,255,255,0.2); color: white;">+500 XP</div>
+          </div>
+          <div class="challenge-body" style="color: rgba(255,255,255,0.9);">
+            Earth Month! Log 10 actions this month to earn bonus XP and climb the global ranks.
+          </div>
+          <div class="challenge-progress-track" style="background: rgba(255,255,255,0.2);">
+            <div class="challenge-progress-fill" id="event-fill" style="width:0%; background: white;"></div>
+          </div>
+          <div class="challenge-footer" style="color: rgba(255,255,255,0.8);"><span id="event-progress">0 / 10 actions</span><span id="event-status">In progress</span></div>
+        </div>
+
+        <div id="tip-highlight"></div>
+
+        <div class="card">
+          <p class="card-title">This week's actions</p>
+          <div id="action-list"></div>
+          <button class="btn" style="margin-top: 12px; border: 1px dashed var(--g300); background: var(--surf);" onclick="generateNewTask()">✨ Generate New Task</button>
+          <div class="summary-bar" id="action-summary" style="display:none;"></div>
+        </div>
+      </div>
+
+      <!-- BADGES PANEL -->
+      <div id="panel-badges" class="panel">
+        <div class="card" style="margin-bottom:1rem;">
+          <p class="card-title">Your achievements</p>
+          <div class="badge-grid" id="badge-grid"></div>
+        </div>
+      </div>
+
+      <!-- LEADERBOARD PANEL -->
+      <div id="panel-leaderboard" class="panel">
+        <div class="card">
+          <p class="card-title">This week's rankings</p>
+          <div id="lb-list"></div>
+        </div>
+        <div class="card" style="background:var(--g50);border-color:var(--g100);">
+          <p style="font-size:13px;color:var(--g900);">🌍 Together, EcoQuest users have offset <strong
+              id="total-offset">0</strong> kg CO₂ this week through completed actions.</p>
+        </div>
+      </div>
+
+      <!-- PROFILE PANEL -->
+      <div id="panel-profile" class="panel">
+        <div class="card" style="text-align:center; padding: 2rem 1rem;">
+          <div id="profile-avatar" style="width:80px;height:80px;border-radius:50%;background:var(--g500);color:white;font-size:32px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">A</div>
+          
+          <div id="profile-info-display">
+            <h2 id="profile-name" style="margin-bottom:4px;font-size:20px;font-weight:700;">Name</h2>
+            <p id="profile-email" style="color:var(--muted);font-size:14px;margin-bottom:1rem;">Email</p>
+            <button class="btn" style="width:auto; display:inline-block; padding: 6px 16px; margin-bottom: 1.5rem;" onclick="editProfile()">Edit Profile</button>
+          </div>
+
+          <div id="profile-edit-form" style="display:none; text-align:left; margin-bottom: 1.5rem; background: var(--gray50); padding: 1.25rem; border-radius: var(--radsm); border: 1px solid var(--border);">
+            <div class="field"><label>Name</label><input type="text" id="edit-name"></div>
+            <div class="field"><label>Email</label><input type="email" id="edit-email"></div>
+            <div style="display:flex;gap:10px;margin-top:14px;">
+              <button class="btn" onclick="saveProfile()" style="background:var(--g500);color:white;border:none;">Save Changes</button>
+              <button class="btn" onclick="cancelEditProfile()" style="background:var(--surf);color:var(--text);">Cancel</button>
+            </div>
+          </div>
+          
+          <div class="metric-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 1.5rem;">
+             <div class="metric"><div class="metric-label">Total XP</div><div class="metric-value" style="color:var(--gold);" id="profile-xp">0</div></div>
+             <div class="metric"><div class="metric-label">Streak</div><div class="metric-value" style="color:var(--am);" id="profile-streak">0</div></div>
+             <div class="metric"><div class="metric-label">Actions</div><div class="metric-value" style="color:var(--g500);" id="profile-actions">0</div></div>
+          </div>
+
+          <button class="btn" style="background:var(--r100);color:var(--r500);border-color:var(--r100);font-weight:600;" onclick="doLogout()">Sign Out</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ── CONFIG ──
+    const GOOGLE_CLIENT_ID = '1234567890-abc123xyz.apps.googleusercontent.com'; // ⚠️ REPLACE THIS with your actual Client ID from Google Cloud
+
+    // ── DATA ──
+    const homeLabels = ['Very low', 'Low', 'Medium', 'High', 'Very high'];
+    const cats = [
+      { key: 'car', label: 'Transport', emoji: '🚗', color: '#185FA5', bg: '#E6F1FB' },
+      { key: 'fly', label: 'Flights', emoji: '✈️', color: '#993C1D', bg: '#FAECE7' },
+      { key: 'meat', label: 'Diet', emoji: '🥩', color: '#3B6D11', bg: '#EAF3DE' },
+      { key: 'home', label: 'Home', emoji: '🏠', color: '#854F0B', bg: '#FAEEDA' },
+      { key: 'elec', label: 'Electricity', emoji: '💡', color: '#F4A800', bg: '#FEF3D0' },
+      { key: 'shop', label: 'Shopping', emoji: '🛍️', color: '#534AB7', bg: '#EEEDFE' },
+    ];
+    const COUNTRY_DATA = {
+      'IN': { name: 'India', total: 2.7 },
+      'US': { name: 'USA', total: 16.0 },
+      'UK': { name: 'UK', total: 8.5 },
+      'WORLD': { name: 'World', total: 4.8 }
+    };
+
+    const LEVELS = [
+      { min: 0, name: 'Seedling', emoji: '🌱', next: 100 },
+      { min: 100, name: 'Sprout', emoji: '🌿', next: 250 },
+      { min: 250, name: 'Eco Minder', emoji: '🍃', next: 500 },
+      { min: 500, name: 'Green Guard', emoji: '🌳', next: 900 },
+      { min: 900, name: 'Planet Keeper', emoji: '🌍', next: 1400 },
+      { min: 1400, name: 'Eco Hero', emoji: '⚡', next: 2000 },
+      { min: 2000, name: 'Earth Legend', emoji: '🏆', next: Infinity },
+    ];
+
+    const ALL_BADGES = [
+      { id: 'first_action', emoji: '🎯', name: 'First Step', desc: 'Complete your first action', xpReq: 0, actionReq: 1 },
+      { id: 'streak3', emoji: '🔥', name: '3-Day Streak', desc: 'Log in 3 days in a row', xpReq: 0, streakReq: 3 },
+      { id: 'actions5', emoji: '🌿', name: 'Green Warrior', desc: 'Complete 5 actions in a week', xpReq: 0, actionReq: 5 },
+      { id: 'xp200', emoji: '⚡', name: 'Power Up', desc: 'Earn 200 XP', xpReq: 200 },
+      { id: 'low_carbon', emoji: '🌍', name: 'Climate Hero', desc: 'Get your footprint below 2.0 t/yr', xpReq: 0, footprintReq: 2.0 },
+      { id: 'actions10', emoji: '💚', name: 'Eco Champion', desc: 'Complete 10 actions total', xpReq: 0, actionReq: 10 },
+      { id: 'xp500', emoji: '🏆', name: 'Legend', desc: 'Earn 500 XP', xpReq: 500 },
+      { id: 'no_meat', emoji: '🥦', name: 'Plant Power', desc: 'Set meat meals to 0 for a week', xpReq: 0, meatReq: true },
+      { id: 'streak7', emoji: '🔥🔥', name: 'Week of Fire', desc: '7-Day Streak', xpReq: 0, streakReq: 7 },
+      { id: 'actions20', emoji: '🌟', name: 'Action Master', desc: 'Complete 20 actions', xpReq: 0, actionReq: 20 },
+      { id: 'xp1000', emoji: '👑', name: 'Grandmaster', desc: 'Earn 1000 XP', xpReq: 1000 },
+      { id: 'low_shopping', emoji: '♻️', name: 'Minimalist', desc: 'Keep shopping under ₹2000', xpReq: 0, shopReq: 2000 },
+      { id: 'low_elec', emoji: '🔌', name: 'Energy Saver', desc: 'Electricity bill under ₹500', xpReq: 0, elecReq: 500 },
+      { id: 'low_driving', emoji: '🚲', name: 'Pedal Power', desc: 'Driving under 50 km/wk', xpReq: 0, carReq: 50 },
+      { id: 'streak14', emoji: '🌋', name: 'Unstoppable', desc: '14-Day Streak', xpReq: 0, streakReq: 14 },
+      { id: 'actions50', emoji: '💯', name: 'Centurion', desc: 'Complete 50 actions', xpReq: 0, actionReq: 50 },
+      { id: 'xp2000', emoji: '💎', name: 'Mythic', desc: 'Earn 2000 XP', xpReq: 2000 },
+      { id: 'zero_fly', emoji: '🚂', name: 'Grounded', desc: '0 flights per year', xpReq: 0, flyReq: 0 },
+      { id: 'super_low', emoji: '✨', name: 'Eco Saint', desc: 'Footprint below 1.5 t/yr', xpReq: 0, footprintReq: 1.5 }
+    ];
+
+    const FAKE_LEADERBOARD = [
+      { name: 'Ananya R.', xp: 1240, avatar: 'A', color: '#1D9E75' },
+      { name: 'Vikram S.', xp: 980, avatar: 'V', color: '#378ADD' },
+      { name: 'Meera P.', xp: 870, avatar: 'M', color: '#993C1D' },
+      { name: 'Rahul T.', xp: 760, avatar: 'R', color: '#7F77DD' },
+      { name: 'Divya K.', xp: 630, avatar: 'D', color: '#BA7517' },
+    ];
+
+    const ACTIONS_DATA = [
+      { text: 'Walk or cycle for trips under 3 km', saving: '~12 kg/mo', xp: 20, done: false, proofType: 'gps' },
+      { text: 'Replace one meat meal with legumes', saving: '~8 kg/mo', xp: 15, done: false, proofType: 'photo' },
+      { text: 'Switch to LED bulbs throughout your home', saving: '~6 kg/mo', xp: 12, done: false, proofType: 'photo' },
+      { text: 'Line-dry laundry instead of tumble-drying', saving: '~5 kg/mo', xp: 10, done: false, proofType: 'photo' },
+      { text: 'Combine errands to cut car trips', saving: '~10 kg/mo', xp: 18, done: false, proofType: 'gps' },
+      { text: 'Buy second-hand for your next clothing purchase', saving: '~3 kg/mo', xp: 10, done: false, proofType: 'bill' },
+      { text: 'Turn off standby power on electronics', saving: '~4 kg/mo', xp: 8, done: false, proofType: 'photo' },
+    ];
+
+    // ── STATE ──
+    let user = null; // {name, email, xp, streak, totalActions, earnedBadges[], lastLogin}
+    let actions = [];
+
+    // ── AUTH ──
+    function authTab(t) {
+      document.querySelectorAll('.auth-tab').forEach((b, i) => b.classList.toggle('active', i === (t === 'login' ? 0 : 1)));
+      document.getElementById('ap-login').classList.toggle('active', t === 'login');
+      document.getElementById('ap-signup').classList.toggle('active', t === 'signup');
+    }
+
+    function doLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-pass').value;
+      if (!email || !pass) { document.getElementById('login-err').textContent = 'Please fill in all fields.'; return; }
+      const stored = localStorage.getItem('eco_user_' + email);
+      if (!stored) { document.getElementById('login-err').textContent = 'No account found. Create one first.'; return; }
+      user = JSON.parse(stored);
+      updateStreak();
+      launchApp();
+    }
+
+    function doSignup() {
+      const name = document.getElementById('su-name').value.trim();
+      const email = document.getElementById('su-email').value.trim();
+      const pass = document.getElementById('su-pass').value;
+      if (!name || !email || !pass) { document.getElementById('su-err').textContent = 'Please fill in all fields.'; return; }
+      if (pass.length < 6) { document.getElementById('su-err').textContent = 'Password must be at least 6 characters.'; return; }
+      if (localStorage.getItem('eco_user_' + email)) { document.getElementById('su-err').textContent = 'Email already registered. Sign in instead.'; return; }
+      user = { name, email, xp: 0, streak: 1, totalActions: 0, earnedBadges: [], lastLogin: new Date().toDateString() };
+      saveUser();
+      launchApp();
+      confetti();
+      showToast('🎉 Welcome to EcoQuest, ' + name.split(' ')[0] + '!');
+    }
+
+    function doGoogleAuth() {
+      if (typeof google === 'undefined' || !google.accounts) {
+        showToast('Google Sign-In is loading, please try again in a moment.');
+        return;
+      }
+
+      if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+        alert('Please configure your GOOGLE_CLIENT_ID at the top of the script to use real Google Authentication.');
+        return;
+      }
+
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+        callback: (response) => {
+          if (response && response.access_token) {
+            fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: { Authorization: `Bearer ${response.access_token}` }
+            })
+            .then(res => res.json())
+            .then(data => {
+              const email = data.email;
+              const name = data.name || "Google User";
+              let stored = localStorage.getItem('eco_user_' + email);
+              if (!stored) {
+                user = { name, email, xp: 0, streak: 1, totalActions: 0, earnedBadges: [], lastLogin: new Date().toDateString() };
+                saveUser();
+                confetti();
+                showToast('🎉 Welcome to EcoQuest, ' + name.split(' ')[0] + '!');
+              } else {
+                user = JSON.parse(stored);
+                updateStreak();
+                showToast('Welcome back, ' + user.name.split(' ')[0] + '!');
+              }
+              launchApp();
+            })
+            .catch(err => showToast('Failed to fetch user information.'));
+          }
+        }
+      });
+      client.requestAccessToken();
+    }
+
+    function doLogout() {
+      if (!confirm('Sign out?')) return;
+      user = null;
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('auth-screen').style.display = 'flex';
+    }
+
+    function updateStreak() {
+      const today = new Date().toDateString();
+      const last = user.lastLogin;
+      if (last === today) return;
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      user.streak = (last === yesterday) ? (user.streak || 0) + 1 : 1;
+      user.lastLogin = today;
+      saveUser();
+    }
+
+    function saveUser() { localStorage.setItem('eco_user_' + user.email, JSON.stringify(user)); }
+
+    function checkWeeklyHistory() {
+      if (!user.lastHistoryUpdate) {
+        user.lastHistoryUpdate = new Date().toISOString();
+        saveUser();
+        return;
+      }
+      
+      const now = new Date();
+      const lastUpdate = new Date(user.lastHistoryUpdate);
+      const msInWeek = 7 * 24 * 60 * 60 * 1000; // Milliseconds in 7 days
+      
+      if (now - lastUpdate >= msInWeek) {
+        if (!user.history) user.history = [];
+        const vals = calcVals();
+        const currentTotal = +(Object.values(vals).reduce((a, b) => a + b, 0)).toFixed(1);
+        
+        user.history.push({ label: 'Week ' + (user.history.length + 1), val: currentTotal });
+        if (user.history.length > 4) user.history.shift(); // Keep chart to last 4 weeks max to prevent UI overflow
+        
+        user.lastHistoryUpdate = now.toISOString();
+        saveUser();
+      }
+    }
+
+    const MOTIVATION_MSGS = [
+      "Every small step counts! 🌱",
+      "You're an eco-superstar! 🌟",
+      "Let's save the planet together! 🌍",
+      "Check your actions for new tasks! 📋",
+      "Drink water and unplug devices! 💧",
+      "I'm rooting for you! 🦊"
+    ];
+
+    function motivateUser() {
+      const speech = document.getElementById('mascot-speech');
+      speech.textContent = MOTIVATION_MSGS[Math.floor(Math.random() * MOTIVATION_MSGS.length)];
+      speech.style.display = 'block';
+      setTimeout(() => speech.style.display = 'none', 5000);
+    }
+
+    function launchApp() {
+      if (!user.history) {
+        user.history = [
+          { label: 'Week 1', val: 3.5 },
+          { label: 'Week 2', val: 3.2 },
+          { label: 'Week 3', val: 3.0 },
+          { label: 'Week 4', val: 2.8 }
+        ];
+        saveUser();
+      }
+      checkWeeklyHistory();
+
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('avatar-btn').textContent = user.name[0].toUpperCase();
+      document.getElementById('mascot-container').style.display = 'flex';
+      refreshHdrXP();
+      update();
+      renderActions();
+      renderBadges();
+      renderLeaderboard();
+      updateProfileStats();
+      setTimeout(motivateUser, 1000);
+    }
+
+    // ── XP & LEVELS ──
+    function addXP(amount, label) {
+      user.xp += amount;
+      saveUser();
+      refreshHdrXP();
+      showToast('⚡ +' + amount + ' XP — ' + label);
+      updateLevelUI();
+      checkBadges();
+      updateProfileStats();
+    }
+
+    function refreshHdrXP() { document.getElementById('hdr-xp').textContent = user.xp; }
+
+    function getLevel(xp) { return [...LEVELS].reverse().find(l => xp >= l.min) || LEVELS[0]; }
+
+    function updateLevelUI() {
+      const lvl = getLevel(user.xp);
+      const next = LEVELS[LEVELS.indexOf(lvl) + 1];
+      const pct = next ? Math.round((user.xp - lvl.min) / (lvl.next - lvl.min) * 100) : 100;
+      const xpToNext = next ? (lvl.next - user.xp) : 0;
+      document.getElementById('lvl-emoji').textContent = lvl.emoji;
+      document.getElementById('lvl-name').textContent = lvl.name;
+      document.getElementById('lvl-sub').textContent = 'Level ' + (LEVELS.indexOf(lvl) + 1) + (next ? ' · ' + xpToNext + ' XP to ' + next.name : ' · Max level!');
+      document.getElementById('xp-bar').style.width = pct + '%';
+      document.getElementById('xp-label').textContent = user.xp + ' / ' + (next ? lvl.next : '∞') + ' XP';
+      document.getElementById('streak-num').textContent = user.streak || 1;
+    }
+
+    // ── BADGES ──
+    function checkBadges() {
+      const done = actions.filter(a => a.done).length;
+      const total = user.totalActions;
+      const xp = user.xp;
+      const vals = calcVals();
+      const footprint = +Object.values(vals).reduce((a, b) => a + b, 0).toFixed(2);
+      const meatZero = +document.getElementById('sl-meat').value === 0;
+      const shopVal = +document.getElementById('sl-shop').value;
+      const carVal = +document.getElementById('sl-car').value;
+      const flyVal = +document.getElementById('sl-fly').value;
+      const elecVal = +document.getElementById('sl-elec').value;
+
+      ALL_BADGES.forEach(b => {
+        if (user.earnedBadges.includes(b.id)) return;
+        let earn = false;
+        if (b.actionReq && total >= b.actionReq) earn = true;
+        if (b.streakReq && (user.streak || 1) >= b.streakReq) earn = true;
+        if (b.xpReq && b.xpReq > 0 && xp >= b.xpReq) earn = true;
+        if (b.footprintReq && footprint <= b.footprintReq) earn = true;
+        if (b.meatReq && meatZero) earn = true;
+        if (b.shopReq !== undefined && shopVal <= b.shopReq) earn = true;
+        if (b.carReq !== undefined && carVal <= b.carReq) earn = true;
+        if (b.flyReq !== undefined && flyVal <= b.flyReq) earn = true;
+        if (b.elecReq !== undefined && elecVal <= b.elecReq) earn = true;
+        if (earn) {
+          user.earnedBadges.push(b.id);
+          saveUser();
+          confetti();
+          showToast('🏅 Badge unlocked: ' + b.name + '!');
+          renderBadges();
+        }
+      });
+    }
+
+    function renderBadges() {
+      if (!user) return;
+      document.getElementById('badge-grid').innerHTML = ALL_BADGES.map(b => {
+        const earned = user.earnedBadges.includes(b.id);
+        return `<div class="badge-card ${earned ? '' : 'locked'}">
+      <div class="badge-emoji">${b.emoji}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-desc">${b.desc}</div>
+      ${earned ? '<div class="badge-earned">Earned ✓</div>' : ''}
+    </div>`;
+      }).join('');
+    }
+
+    // ── LEADERBOARD ──
+    function renderLeaderboard() {
+      if (!user) return;
+      const userEntry = { name: user.name + ' (you)', xp: user.xp, avatar: user.name[0], color: '#1D9E75', isYou: true };
+      const all = [...FAKE_LEADERBOARD, userEntry].sort((a, b) => b.xp - a.xp);
+      const rankClass = ['gold', 'silver', 'bronze'];
+      document.getElementById('lb-list').innerHTML = all.map((p, i) => `
+    <div class="lb-row ${p.isYou ? 'lb-you' : ''}">
+      <div class="lb-rank ${rankClass[i] || ''}">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i + 1)}</div>
+      <div class="lb-avatar" style="background:${p.color}">${p.avatar}</div>
+      <div class="lb-name">${p.name}<small>${getLevel(p.xp).name}</small></div>
+      <div class="lb-xp">⚡ ${p.xp}</div>
+    </div>`).join('');
+      const totalOffset = (user.totalActions * 8 + 1240 + 980 + 870 + 760 + 630) * 0.3;
+      document.getElementById('total-offset').textContent = Math.round(totalOffset);
+    }
+
+    // ── CALC ──
+    function calcVals() {
+      const car = +document.getElementById('sl-car').value;
+      const vehType = document.getElementById('sl-veh-type').value;
+      const fly = +document.getElementById('sl-fly').value;
+      const meat = +document.getElementById('sl-meat').value;
+      const home = +document.getElementById('sl-home').value;
+      const elec = +document.getElementById('sl-elec').value;
+      const shop = +document.getElementById('sl-shop').value;
+
+      let carMultiplier = 0.00021; // base for 4 wheeler
+      if (vehType === '2wheeler') carMultiplier = 0.00006;
+      else if (vehType === 'ev') carMultiplier = 0.00004;
+      else if (vehType === 'public') carMultiplier = 0.00003;
+
+      return {
+        car: +(car * carMultiplier * 52).toFixed(2),
+        fly: +(fly * .25).toFixed(2),
+        meat: +(meat * .0056 * 52).toFixed(2),
+        home: +(home * .3).toFixed(2),
+        elec: +(elec * 0.0014).toFixed(2),
+        shop: +(shop / 50000 * 52 * .4).toFixed(2),
+      };
+    }
+
+    // ── UPDATE ──
+    function update() {
+      if (!user) return;
+      const vehType = document.getElementById('sl-veh-type').value;
+      const car = +document.getElementById('sl-car').value;
+      const fly = +document.getElementById('sl-fly').value;
+      const meat = +document.getElementById('sl-meat').value;
+      const home = +document.getElementById('sl-home').value;
+      const elec = +document.getElementById('sl-elec').value;
+      const shop = +document.getElementById('sl-shop').value;
+
+      const drivingIcon = document.getElementById('driving-icon');
+      if (vehType === '4wheeler') drivingIcon.textContent = '🚗';
+      else if (vehType === '2wheeler') drivingIcon.textContent = '🛵';
+      else if (vehType === 'ev') drivingIcon.textContent = '🔌';
+      else if (vehType === 'public') drivingIcon.textContent = '🚌';
+
+      document.getElementById('v-car').textContent = car + ' km/wk';
+      document.getElementById('v-fly').textContent = fly + (fly === 1 ? ' flight' : ' flights');
+      document.getElementById('v-meat').textContent = meat + (meat === 1 ? ' meal' : ' meals');
+      document.getElementById('v-home').textContent = homeLabels[home];
+      document.getElementById('v-elec').textContent = '₹' + elec.toLocaleString('en-IN');
+      document.getElementById('v-shop').textContent = '₹' + shop.toLocaleString('en-IN');
+
+      const vals = calcVals();
+      const total = +(Object.values(vals).reduce((a, b) => a + b, 0)).toFixed(2);
+      const maxVal = Math.max(...Object.values(vals), .01);
+
+      const selectedCountryCode = document.getElementById('country-select').value;
+      const countryData = COUNTRY_DATA[selectedCountryCode];
+      const countryTotal = countryData.total;
+
+      updateLevelUI();
+
+      // Ring
+      const circum = 2 * Math.PI * 32;
+      const offset = circum * (1 - Math.min(total / 12, 1));
+      const ring = document.getElementById('ring-circle');
+      ring.style.strokeDashoffset = offset.toFixed(1);
+      ring.style.stroke = total < 2 ? '#1D9E75' : total < 5 ? '#BA7517' : '#E24B4A';
+      document.getElementById('ring-total').textContent = total;
+      const diff = (total - countryTotal).toFixed(1);
+      document.getElementById('ring-compare').innerHTML = total <= countryTotal
+        ? `<span style="color:var(--g700)">▼ ${(countryTotal - total).toFixed(1)}t below ${countryData.name} avg</span>`
+        : `<span style="color:#D85A30">▲ ${diff}t above ${countryData.name} avg</span>`;
+
+      // Metrics
+      document.getElementById('metric-grid').innerHTML = `
+    <div class="metric"><div class="metric-label">☁️ Total CO₂/yr</div><div class="metric-value">${total}</div><div class="metric-sub">tonnes</div></div>
+    <div class="metric"><div class="metric-label">🔥 Per day</div><div class="metric-value">${(total * 1000 / 365).toFixed(1)}</div><div class="metric-sub">kg CO₂</div></div>
+    <div class="metric"><div class="metric-label">🌳 Trees to offset</div><div class="metric-value">${Math.round(total * 45)}</div><div class="metric-sub">per year</div></div>
+    <div class="metric"><div class="metric-label">📊 vs ${countryData.name} avg</div><div class="metric-value" style="color:${total <= countryTotal ? 'var(--g700)' : '#D85A30'}">${total <= countryTotal ? '-' + (countryTotal - total).toFixed(1) : '+' + (total - countryTotal).toFixed(1)}</div><div class="metric-sub">tonnes</div></div>
+  `;
+
+      // Bars
+      document.getElementById('bars').innerHTML = cats.map(c => {
+        const pct = Math.round(vals[c.key] / maxVal * 100);
+        return `<div class="bar-row"><div class="bar-header"><span class="bar-name">${c.emoji} ${c.label}</span><span class="bar-amt">${vals[c.key]} t</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${c.color}"></div></div></div>`;
+      }).join('');
+
+      // Tip in actions tab
+      const bigKey = Object.entries(vals).sort((a, b) => b[1] - a[1])[0][0];
+      const tipData = {
+        car: { emoji: '🚗', title: 'Focus area: driving', body: 'Even 2 days/week on public transport cuts this by ~40%.', tag: 'High impact', tagC: '#E6F1FB', tagT: '#185FA5' },
+        fly: { emoji: '✈️', title: 'Focus area: flights', body: 'One long-haul return flight ≈ 3 months of driving. Video calls save a lot.', tag: 'Very high impact', tagC: '#FAECE7', tagT: '#993C1D' },
+        meat: { emoji: '🥩', title: 'Focus area: diet', body: 'Beef is ~20× more CO₂-intensive than lentils per meal.', tag: 'Medium impact', tagC: '#EAF3DE', tagT: '#3B6D11' },
+        home: { emoji: '🏠', title: 'Focus area: home energy', body: 'A green tariff or solar panels could zero this out entirely.', tag: 'Medium impact', tagC: '#FAEEDA', tagT: '#854F0B' },
+        elec: { emoji: '💡', title: 'Focus area: electricity', body: 'Unplug devices, use LED bulbs, and switch off ACs to cut your footprint and bill.', tag: 'High impact', tagC: '#FEF3D0', tagT: '#F4A800' },
+        shop: { emoji: '🛍️', title: 'Focus area: shopping', body: 'Buying second-hand or repairing items saves significantly.', tag: 'Low–medium impact', tagC: '#EEEDFE', tagT: '#534AB7' },
+      };
+      const tip = tipData[bigKey];
+      document.getElementById('tip-highlight').innerHTML = `
+    <div class="tip-highlight" style="background:${tip.tagC};border-color:${tip.tagT}33;">
+      <div class="tip-icon-wrap" style="background:${tip.tagT}22;font-size:22px;">${tip.emoji}</div>
+      <div>
+        <div class="tip-title" style="color:${tip.tagT}">${tip.title}</div>
+        <div class="tip-body">${tip.body}</div>
+        <span class="impact-tag" style="background:${tip.tagT}22;color:${tip.tagT}">${tip.tag}</span>
+      </div>
+    </div>`;
+
+      checkBadges();
+      renderLeaderboard();
+      updateProfileStats();
+    }
+
+    // ── ACTIONS ──
+    function renderActions() {
+      if (!user) return;
+      const done = actions.filter(a => a.done).length;
+      // challenge
+      const target = 5;
+      const pct = Math.min(done / target * 100, 100);
+      document.getElementById('ch-fill').style.width = pct + '%';
+      document.getElementById('ch-progress').textContent = done + ' / ' + target + ' actions';
+      document.getElementById('ch-status').textContent = done >= target ? '✅ Complete!' : 'In progress';
+
+      // event
+      const eventTarget = 10;
+      const eventPct = Math.min(done / eventTarget * 100, 100);
+      document.getElementById('event-fill').style.width = eventPct + '%';
+      document.getElementById('event-progress').textContent = done + ' / ' + eventTarget + ' actions';
+      document.getElementById('event-status').textContent = done >= eventTarget ? '✅ Complete!' : 'In progress';
+
+      document.getElementById('action-list').innerHTML = actions.map((a, i) => `
+    <div class="action-item ${a.done ? 'done' : ''}" onclick="toggleAction(${i})" role="checkbox" aria-checked="${a.done}" tabindex="0">
+      <div class="check-circle">${a.done ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>' : ''}</div>
+      <span class="action-text">${a.text}</span>
+      <div class="action-right">
+        <span class="action-saving">Save ${a.saving}</span>
+        <span class="action-xp">${a.done ? '✓' : '+' + a.xp} XP</span>
+      </div>
+    </div>`).join('');
+
+      const summary = document.getElementById('action-summary');
+      if (done > 0) {
+        const totalXp = actions.filter(a => a.done).reduce((s, a) => s + a.xp, 0);
+        summary.style.display = 'flex';
+        summary.textContent = done + ' of ' + actions.length + ' done · ' + totalXp + ' XP earned this week!';
+      } else {
+        summary.style.display = 'none';
+      }
+    }
+
+    function generateNewTask() {
+      const vals = calcVals();
+      const worstCat = Object.keys(vals).reduce((a, b) => vals[a] > vals[b] ? a : b);
+      
+      const tasksByCat = {
+        car: [
+          { text: 'Carpool to work or school', saving: '~20 kg/mo', xp: 25, proofType: 'photo' },
+          { text: 'Skip driving for 1 day', saving: '~5 kg/mo', xp: 15, proofType: 'gps' },
+          { text: 'Check your tire pressure', saving: '~2 kg/mo', xp: 10, proofType: 'photo' },
+        ],
+        fly: [
+          { text: 'Opt for a train instead of flying next trip', saving: '~100 kg', xp: 50, proofType: 'photo' },
+          { text: 'Plan a local staycation', saving: '~50 kg', xp: 30, proofType: 'photo' },
+        ],
+        meat: [
+          { text: 'Try a new vegan recipe', saving: '~5 kg/mo', xp: 15, proofType: 'photo' },
+          { text: 'Meatless Monday', saving: '~8 kg/mo', xp: 20, proofType: 'photo' },
+          { text: 'Buy plant-based milk', saving: '~3 kg/mo', xp: 12, proofType: 'bill' },
+        ],
+        home: [
+          { text: 'Wash clothes in cold water', saving: '~4 kg/mo', xp: 10, proofType: 'photo' },
+          { text: 'Air dry dishes instead of heated dry', saving: '~2 kg/mo', xp: 8, proofType: 'photo' },
+          { text: 'Switch off AC/Heater for 2 hours', saving: '~5 kg/mo', xp: 15, proofType: 'photo' },
+        ],
+        elec: [
+          { text: 'Switch to LED bulbs in a frequently used room', saving: '~6 kg/mo', xp: 12, proofType: 'photo' },
+          { text: 'Unplug electronics when not in use', saving: '~2 kg/mo', xp: 10, proofType: 'photo' },
+          { text: 'Upload your latest electricity bill to verify savings', saving: '~0 kg/mo', xp: 20, proofType: 'bill' },
+        ],
+        shop: [
+          { text: 'Repair an old item of clothing', saving: '~5 kg/mo', xp: 15, proofType: 'photo' },
+          { text: 'Buy groceries from a local market', saving: '~4 kg/mo', xp: 12, proofType: 'bill' },
+          { text: 'Avoid plastic packaging for 1 shop', saving: '~2 kg/mo', xp: 10, proofType: 'photo' },
+        ]
+      };
+      
+      const pool = tasksByCat[worstCat];
+      const randomTask = pool[Math.floor(Math.random() * pool.length)];
+      actions.push({ ...randomTask, done: false });
+      saveUser();
+      renderActions();
+      showToast('✨ AI tailored a task for your footprint!');
+    }
+
+    function updateProfileStats() {
+      if (!user) return;
+      document.getElementById('profile-xp').textContent = user.xp;
+      document.getElementById('profile-streak').textContent = user.streak || 1;
+      document.getElementById('profile-actions').textContent = user.totalActions || 0;
+
+      const vals = calcVals();
+      const currentTotal = +(Object.values(vals).reduce((a, b) => a + b, 0)).toFixed(1);
+      
+      const chartData = [...(user.history || []), { label: 'Now', val: currentTotal, isCurrent: true }];
+      const maxVal = Math.max(...chartData.map(d => d.val), 1);
+
+      document.getElementById('profile-chart').innerHTML = chartData.map(d => {
+        const pct = (d.val / maxVal) * 100;
+        const bg = d.isCurrent ? 'var(--g500)' : 'var(--gray200)';
+        return `
+          <div class="chart-bar-col">
+            <div class="chart-val">${d.val}</div>
+            <div class="chart-bar" style="height: ${pct}%; background: ${bg};"></div>
+            <div class="chart-label" style="color: ${d.isCurrent ? 'var(--g700)' : 'var(--muted)'}; font-weight: ${d.isCurrent ? '700' : '400'}">${d.label}</div>
+          </div>`;
+      }).join('');
+    }
+
+    function editProfile() {
+      document.getElementById('profile-info-display').style.display = 'none';
+      document.getElementById('profile-edit-form').style.display = 'block';
+      document.getElementById('edit-name').value = user.name;
+      document.getElementById('edit-email').value = user.email;
+    }
+
+    function cancelEditProfile() {
+      document.getElementById('profile-info-display').style.display = 'block';
+      document.getElementById('profile-edit-form').style.display = 'none';
+    }
+
+    function saveProfile() {
+      const newName = document.getElementById('edit-name').value.trim();
+      const newEmail = document.getElementById('edit-email').value.trim().toLowerCase();
+      
+      if (!newName || !newEmail) return showToast('Name and email cannot be empty.');
+
+      if (newEmail !== user.email) {
+        if (localStorage.getItem('eco_user_' + newEmail)) return showToast('Email already in use.');
+        localStorage.removeItem('eco_user_' + user.email); // Remove old data key
+      }
+
+      user.name = newName;
+      user.email = newEmail;
+      saveUser();
+      
+      document.getElementById('profile-avatar').textContent = user.name[0].toUpperCase();
+      document.getElementById('profile-name').textContent = user.name;
+      document.getElementById('profile-email').textContent = user.email;
+      document.getElementById('avatar-btn').textContent = user.name[0].toUpperCase();
+      
+      cancelEditProfile();
+      showToast('Profile updated!');
+    }
+
+    function resetHistory() {
+      if (!confirm('Are you sure you want to reset your footprint history? This cannot be undone.')) return;
+
+      user.history = [
+        { label: 'Week 1', val: 3.5 },
+        { label: 'Week 2', val: 3.2 },
+        { label: 'Week 3', val: 3.0 },
+        { label: 'Week 4', val: 2.8 }
+      ];
+      user.lastHistoryUpdate = new Date().toISOString(); // Reset the weekly timer
+      saveUser();
+      
+      updateProfileStats(); // Re-render the chart
+      showToast('📈 History has been reset.');
+    }
+
+    let currentActionIndex = -1;
+    let currentProofData = null;
+
+    function toggleAction(i) {
+      if (actions[i].done) return; // can't un-check
+      currentActionIndex = i;
+      openProofModal(actions[i]);
+    }
+
+    function openProofModal(action) {
+      document.getElementById('proof-modal').classList.add('active');
+      const title = document.getElementById('modal-title');
+      const body = document.getElementById('modal-body-content');
+      const btn = document.getElementById('modal-verify-btn');
+
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      btn.textContent = 'Verify & Claim XP';
+      btn.onclick = verifyProof;
+
+      currentProofData = null;
+
+      if (action.proofType === 'gps') {
+        title.textContent = 'Verify Movement';
+        body.innerHTML = `
+      <p style="font-size:13px; color:var(--muted);">We need to verify your movement for this action.</p>
+      <div class="proof-preview" id="gps-preview">📍 Click button below to capture</div>
+      <button class="btn" style="margin-top:10px;background:var(--gray100);color:var(--text);border:none;" onclick="captureGPS()">Capture GPS Location</button>
+    `;
+      } else if (action.proofType === 'photo') {
+        title.textContent = 'Upload Photo Proof';
+        body.innerHTML = `
+      <p style="font-size:13px; color:var(--muted);">Take a quick photo to earn your XP!</p>
+      <label class="proof-preview" id="photo-preview-wrap" style="cursor:pointer;background:var(--g50);border-color:var(--g300);">
+        <span style="font-size:24px;">📷</span>
+        <span>Tap to take photo</span>
+        <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload(event)">
+      </label>
+    `;
+      } else if (action.proofType === 'bill') {
+        title.textContent = 'AI Receipt Scan';
+        body.innerHTML = `
+      <p style="font-size:13px; color:var(--muted);">Upload your eco-friendly bill/receipt. Our AI (Anthropic) will scan it.</p>
+      <input type="password" id="anthropic-api-key" placeholder="Anthropic API Key (Leave empty for demo mock)" style="width:100%;padding:10px;margin-bottom:10px;border:1px solid var(--border2);border-radius:6px;background:var(--surf);color:var(--text);outline:none;">
+      <label class="proof-preview" id="photo-preview-wrap" style="cursor:pointer;background:var(--pur1);border-color:var(--pur);">
+        <span style="font-size:24px;">📄</span>
+        <span>Tap to upload receipt</span>
+        <input type="file" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)">
+      </label>
+      <p id="ai-status" style="font-size:13px; color:var(--g700); margin-top:5px; display:none; font-weight:600;">Scanning...</p>
+    `;
+      }
+    }
+
+    function closeProofModal() {
+      document.getElementById('proof-modal').classList.remove('active');
+      currentActionIndex = -1;
+    }
+
+    function captureGPS() {
+      const preview = document.getElementById('gps-preview');
+      preview.innerHTML = "Locating... ⏳";
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          preview.innerHTML = `<span style="color:var(--g700); font-weight:600; font-size:16px;">✅ Location Captured!</span><br><br><span style="font-size:12px;">Lat: ${pos.coords.latitude.toFixed(5)}<br>Lng: ${pos.coords.longitude.toFixed(5)}</span>`;
+          currentProofData = pos;
+          document.getElementById('modal-verify-btn').disabled = false;
+          document.getElementById('modal-verify-btn').style.opacity = '1';
+        }, err => {
+          preview.innerHTML = "❌ Failed to get location.<br><small>Please allow permissions.</small>";
+        });
+      } else {
+        preview.innerHTML = "❌ Geolocation not supported.";
+      }
+    }
+
+    function handlePhotoUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        currentProofData = evt.target.result;
+        document.getElementById('photo-preview-wrap').innerHTML = `<img src="${evt.target.result}">`;
+        document.getElementById('modal-verify-btn').disabled = false;
+        document.getElementById('modal-verify-btn').style.opacity = '1';
+      }
+      reader.readAsDataURL(file);
+    }
+
+    async function verifyProof() {
+      const action = actions[currentActionIndex];
+      const btn = document.getElementById('modal-verify-btn');
+
+      if (action.proofType === 'bill') {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        const status = document.getElementById('ai-status');
+        status.style.display = 'block';
+        status.textContent = '🤖 AI is analyzing your receipt...';
+
+        const res = await verifyWithAnthropic(currentProofData);
+        if (res.verified) {
+          showToast('✅ AI Verified: ' + res.reason);
+          completeAction(currentActionIndex);
+        } else {
+          showToast('❌ AI Rejected: ' + res.reason);
+          btn.disabled = false;
+          btn.style.opacity = '1';
+          status.textContent = 'Verification failed. Upload a valid receipt.';
+          return;
+        }
+      } else {
+        completeAction(currentActionIndex);
+      }
+      closeProofModal();
+    }
+
+    async function verifyWithAnthropic(base64Image) {
+      const apiKey = document.getElementById('anthropic-api-key').value;
+      if (!apiKey) {
+        return new Promise(r => setTimeout(() => r({ verified: true, reason: "Mock verification successful (No API key provided)." }), 1500));
+      }
+      try {
+        const mediaType = base64Image.match(/^data:(image\/[a-zA-Z0-9]+);base64,/)[1];
+        const base64Data = base64Image.replace(/^data:image\/[a-zA-Z0-9]+;base64,/, "");
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerously-allow-browser': 'true'
+          },
+          body: JSON.stringify({
+            model: 'claude-3-haiku-20240307',
+            max_tokens: 300,
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Data } },
+                { type: 'text', text: 'You are an AI eco-verifier. Determine if this image is a valid receipt, bill, or eco-friendly item. Reply ONLY with valid JSON in this format: {"verified": true, "reason": "short explanation"}' }
+              ]
+            }]
+          })
+        });
+        const data = await response.json();
+        return JSON.parse(data.content[0].text);
+      } catch (e) {
+        console.error(e);
+        return { verified: false, reason: "API Error or invalid response." };
+      }
+    }
+
+    function openReceiptScanner() {
+      document.getElementById('proof-modal').classList.add('active');
+      const title = document.getElementById('modal-title');
+      const body = document.getElementById('modal-body-content');
+      const btn = document.getElementById('modal-verify-btn');
+
+      title.textContent = 'AI Carbon Scanner';
+      body.innerHTML = `
+        <p style="font-size:13px; color:var(--muted);">Upload a receipt. Our AI will estimate the carbon emissions of your purchases.</p>
+        <input type="password" id="anthropic-api-key" placeholder="Anthropic API Key (Leave empty for demo mock)" style="width:100%;padding:10px;margin-bottom:10px;border:1px solid var(--border2);border-radius:6px;background:var(--surf);color:var(--text);outline:none;">
+        <label class="proof-preview" id="photo-preview-wrap" style="cursor:pointer;background:var(--pur1);border-color:var(--pur);">
+          <span style="font-size:24px;">📄</span>
+          <span>Tap to upload receipt</span>
+          <input type="file" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)">
+        </label>
+        <div id="ai-result" style="display:none; margin-top: 10px; padding: 10px; background: var(--g50); border-radius: var(--radsm); border: 1px solid var(--g300);"></div>
+        <p id="ai-status" style="font-size:13px; color:var(--g700); margin-top:5px; display:none; font-weight:600;">Scanning...</p>
+      `;
+
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      btn.textContent = 'Analyze Receipt';
+      btn.onclick = analyzeReceipt;
+      
+      currentProofData = null;
+    }
+
+    async function analyzeReceipt() {
+      const btn = document.getElementById('modal-verify-btn');
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      
+      const status = document.getElementById('ai-status');
+      const resultDiv = document.getElementById('ai-result');
+      status.style.display = 'block';
+      status.textContent = '🤖 AI is calculating carbon impact...';
+      resultDiv.style.display = 'none';
+
+      const res = await estimateCarbonWithAnthropic(currentProofData);
+      
+      status.style.display = 'none';
+      resultDiv.style.display = 'block';
+      
+      if (res.error) {
+        resultDiv.innerHTML = `<span style="color:var(--r500)">❌ Error: ${res.error}</span>`;
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      } else {
+        resultDiv.innerHTML = `
+          <div style="font-size: 20px; font-weight: bold; color: var(--g700); margin-bottom: 5px;">☁️ ${res.carbon_kg} kg CO₂</div>
+          <div style="font-size: 13px; color: var(--text);">${res.summary}</div>
+        `;
+        btn.textContent = "Done";
+        btn.onclick = closeProofModal;
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        
+        addXP(10, 'Analyzed receipt footprint');
+      }
+    }
+
+    async function estimateCarbonWithAnthropic(base64Image) {
+      const apiKey = document.getElementById('anthropic-api-key').value;
+      if (!apiKey) {
+        return new Promise(r => setTimeout(() => r({ carbon_kg: 18.5, summary: "Mock verification: Analyzed 5 grocery items (incl. dairy and produce). Your shopping emitted approximately 18.5 kg CO₂." }), 1500));
+      }
+      try {
+        const mediaType = base64Image.match(/^data:(image\/[a-zA-Z0-9]+);base64,/)[1];
+        const base64Data = base64Image.replace(/^data:image\/[a-zA-Z0-9]+;base64,/, "");
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerously-allow-browser': 'true' },
+          body: JSON.stringify({
+            model: 'claude-3-haiku-20240307', max_tokens: 300,
+            messages: [{ role: 'user', content: [
+              { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Data } },
+              { type: 'text', text: 'You are an AI carbon footprint estimator. Estimate the total carbon emissions (in kg CO2) for the items on this receipt. Reply ONLY with valid JSON in this format: {"carbon_kg": 15.5, "summary": "Short explanation of the items driving the footprint."}' }
+            ]}]
+          })
+        });
+        const data = await response.json();
+        return JSON.parse(data.content[0].text);
+      } catch (e) {
+        console.error(e);
+        return { error: "API Error or invalid response." };
+      }
+    }
+
+    function completeAction(i) {
+      actions[i].done = true;
+      user.totalActions = (user.totalActions || 0) + 1;
+      
+      if (!user.completedActions) user.completedActions = [];
+      if (!user.completedActions.includes(i)) {
+        user.completedActions.push(i);
+      }
+
+      addXP(actions[i].xp, actions[i].text.split(' ').slice(0, 4).join(' ') + '…');
+      saveUser();
+      renderActions();
+      checkBadges();
+      motivateUser();
+    }
+
+    // ── TAB SWITCH ──
+    function switchTab(name, btn) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+      document.getElementById('panel-' + name).classList.add('active');
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      if (name === 'leaderboard') renderLeaderboard();
+      if (name === 'badges') renderBadges();
+    }
+
+    // ── TOAST ──
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2800);
+    }
+
+    // ── CONFETTI ──
+    function confetti() {
+      const colors = ['#1D9E75', '#F4A800', '#378ADD', '#E24B4A', '#7F77DD', '#3B6D11'];
+      for (let i = 0; i < 30; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.cssText = `left:${Math.random() * 100}vw;top:-10px;background:${colors[i % colors.length]};animation-delay:${Math.random() * .5}s;animation-duration:${.8 + Math.random() * .8}s;transform:rotate(${Math.random() * 360}deg);`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1400);
+      }
+    }
+  </script>
+</body>
+
+</html>
