@@ -10,6 +10,8 @@ EcoQuest is an interactive, single-page web application designed to make carbon 
 ## ✨ Features
 
 - **Dynamic Footprint Calculation:** Interactive sliders for lifestyle habits (transport, flights, diet, shopping, energy) that instantly calculate your annual CO₂ emissions.
+  - **Vehicle Type Selection:** Commuting impacts dynamically scale based on whether you select a 4-wheeler, 2-wheeler, EV, or public transport.
+  - **Global Comparison:** Compare your personal footprint to the national averages of the World, India, USA, or the UK.
 - **Gamification Engine:**
   - **XP & Levels:** Earn Experience Points (XP) for completing actions and level up from a `Seedling` to an `Earth Legend`.
   - **Badges:** Unlock over 20 unique badges for achieving milestones (e.g., 7-day streaks, completing 50 actions, maintaining a low footprint).
@@ -22,15 +24,16 @@ EcoQuest is an interactive, single-page web application designed to make carbon 
   - **GPS:** Verify location-based tasks like walking or cycling.
   - **Photo Upload:** Submit photo proof for tangible actions.
   - **AI Receipt Scanning:** Uses the Anthropic (Claude) API to verify eco-friendly purchases from a receipt/bill image.
+  - **Standalone AI Carbon Scanner:** Upload any grocery or shopping receipt to get an instant AI estimation of its carbon footprint.
 - **Social & Motivational:**
   - **Leaderboard:** Compete with other users for the top rank based on weekly XP.
   - **Animated Mascot:** A friendly fox mascot provides motivational tips and celebrates your achievements.
 - **User Authentication:**
   - Secure sign-in and sign-up system (data stored in `localStorage`).
   - "Continue with Google" option using Google's official Identity Services SDK.
-  - Profile section to edit user name and email.
+  - Profile section to edit user name, email, and view a visual bar chart of your footprint history over time.
 - **Modern UI/UX:**
-  - Clean, responsive design that works on desktop and mobile.
+  - Clean, minimalistic responsive design with pill-shaped tabs and soft UI elements that works beautifully on desktop and mobile.
   - Automatic light and dark mode support based on system preference.
 
 ---
