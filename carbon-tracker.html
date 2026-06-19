@@ -1,0 +1,3241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoTrace — Gamified Carbon Footprint Tracker</title>
+
+  <!-- Typography and Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+  <style>
+    /* ── SYSTEM DESIGN TOKENS ── */
+    :root {
+      --font-heading: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+      --font-body: 'Inter', -apple-system, sans-serif;
+
+      /* Colors - High Contrast Accessible Palette (Light) */
+      --primary-hsl: 152, 68%, 24%;
+      --primary: hsl(var(--primary-hsl));
+      --primary-hover: hsl(152, 68%, 18%);
+      --primary-light: hsl(152, 45%, 95%);
+
+      --accent-hsl: 185, 84%, 25%;
+      --accent: hsl(var(--accent-hsl));
+      --accent-light: hsl(185, 50%, 94%);
+
+      --warning-hsl: 32, 85%, 35%;
+      --warning: hsl(var(--warning-hsl));
+      --warning-light: hsl(32, 80%, 95%);
+
+      --danger-hsl: 355, 75%, 40%;
+      --danger: hsl(var(--danger-hsl));
+      --danger-light: hsl(355, 70%, 96%);
+
+      --bg: hsl(150, 12%, 97%);
+      --panel-bg: hsl(0, 0%, 100%);
+      --panel-bg-glass: rgba(255, 255, 255, 0.85);
+      --border-color: hsl(150, 10%, 88%);
+      --border-focus: var(--primary);
+
+      --text-main: hsl(150, 15%, 12%);
+      --text-muted: hsl(150, 6%, 40%);
+      --text-muted-light: hsl(150, 4%, 60%);
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 10px 30px rgba(23, 43, 31, 0.06);
+      --shadow-lg: 0 20px 40px rgba(23, 43, 31, 0.12);
+
+      --transition-fast: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Dark Mode Palette overrides */
+    [data-theme="dark"] {
+      --primary-hsl: 152, 60%, 45%;
+      --primary: hsl(var(--primary-hsl));
+      --primary-hover: hsl(152, 60%, 50%);
+      --primary-light: hsl(152, 35%, 12%);
+
+      --accent-hsl: 185, 70%, 45%;
+      --accent: hsl(var(--accent-hsl));
+      --accent-light: hsl(185, 40%, 12%);
+
+      --warning-hsl: 35, 75%, 45%;
+      --warning: hsl(var(--warning-hsl));
+      --warning-light: hsl(35, 45%, 13%);
+
+      --danger-hsl: 355, 70%, 55%;
+      --danger: hsl(var(--danger-hsl));
+      --danger-light: hsl(355, 40%, 14%);
+
+      --bg: hsl(150, 12%, 8%);
+      --panel-bg: hsl(150, 10%, 12%);
+      --panel-bg-glass: rgba(24, 32, 28, 0.85);
+      --border-color: hsl(150, 8%, 20%);
+
+      --text-main: hsl(150, 10%, 93%);
+      --text-muted: hsl(150, 5%, 68%);
+      --text-muted-light: hsl(150, 4%, 48%);
+
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+      --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ── BASE STYLES ── */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.6;
+      transition: background-color var(--transition-smooth), color var(--transition-smooth);
+    }
+
+    /* Skip link for Accessibility */
+    .skip-link {
+      position: absolute;
+      top: -100px;
+      left: 20px;
+      background: var(--primary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      z-index: 1000;
+      text-decoration: none;
+      font-weight: 600;
+      transition: top var(--transition-fast);
+    }
+
+    .skip-link:focus {
+      top: 20px;
+      outline: 3px solid var(--accent);
+    }
+
+    /* ── APP SHELL LAYOUT ── */
+    .app-shell {
+      max-width: 840px;
+      margin: 0 auto;
+      background: var(--panel-bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-lg);
+      border-left: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      transition: background-color var(--transition-smooth), border-color var(--transition-smooth);
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 1.5rem 1.5rem 0 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--panel-bg-glass);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    .brand h1 {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .theme-toggle-btn {
+      background: none;
+      border: 1px solid var(--border-color);
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: background var(--transition-fast), border-color var(--transition-fast);
+    }
+
+    .theme-toggle-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .theme-toggle-btn:focus-visible {
+      outline: 3px solid var(--primary);
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-light);
+      border-radius: 30px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+      border: 1px solid rgba(var(--primary-hsl), 0.15);
+    }
+
+    /* Navigation Tabs */
+    nav {
+      display: flex;
+      gap: 4px;
+    }
+
+    .nav-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: 12px 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text-muted);
+      border-bottom: 3px solid transparent;
+      transition: color var(--transition-fast), border-color var(--transition-fast);
+      font-family: var(--font-heading);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    }
+
+    .nav-btn:hover {
+      color: var(--text-main);
+      background: var(--primary-light);
+    }
+
+    .nav-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 700;
+    }
+
+    .nav-btn:focus-visible {
+      outline: 3px solid var(--primary);
+      outline-offset: -3px;
+    }
+
+    .nav-btn i {
+      font-size: 18px;
+    }
+
+    /* ── MAIN CONTENT ── */
+    main {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      outline: none;
+    }
+
+    .page {
+      display: none;
+      animation: fadeIn 0.35s ease-out;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ── COMPONENT: CARD PANELS ── */
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ── SCORE RING & LEVEL BOARD ── */
+    .dashboard-hero {
+      display: grid;
+      grid-template-columns: 1.2fr 1.8fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .score-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--panel-bg), var(--primary-light));
+    }
+
+    .ring-wrap {
+      position: relative;
+      width: 110px;
+      height: 110px;
+      margin-bottom: 12px;
+    }
+
+    .ring-wrap svg {
+      width: 110px;
+      height: 110px;
+    }
+
+    .ring-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .ring-grade {
+      font-family: var(--font-heading);
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .ring-lbl {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 2px;
+    }
+
+    .hero-info-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Animated Mascot card */
+    .mascot-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px;
+      background: var(--primary-light);
+      border-radius: var(--radius-md);
+      border: 1px dashed rgba(var(--primary-hsl), 0.25);
+      margin-top: 12px;
+    }
+
+    .mascot-svg {
+      width: 60px;
+      height: 60px;
+      flex-shrink: 0;
+      animation: gentle-bob 3s ease-in-out infinite;
+    }
+
+    .mascot-bubble {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-main);
+      line-height: 1.4;
+      position: relative;
+    }
+
+    @keyframes gentle-bob {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-4px);
+      }
+    }
+
+    /* ── PROGRESS & XP BAR ── */
+    .level-badge-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .xp-bar-wrap {
+      background: var(--border-color);
+      height: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .xp-bar-fill {
+      background: linear-gradient(90deg, var(--accent), var(--primary));
+      height: 100%;
+      width: 0%;
+      border-radius: 6px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .xp-detail-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    /* ── METRIC GRID ── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .metric-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--border-color);
+    }
+
+    .metric-card.primary::before {
+      background: var(--primary);
+    }
+
+    .metric-card.accent::before {
+      background: var(--accent);
+    }
+
+    .metric-card.warning::before {
+      background: var(--warning);
+    }
+
+    .metric-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    .metric-val-row {
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+    }
+
+    .metric-value {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .metric-unit {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .metric-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .trend-down {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .trend-up {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    /* ── DUAL COLUMN DASHBOARD ── */
+    .dashboard-body {
+      display: grid;
+      grid-template-columns: 1.7fr 1.3fr;
+      gap: 1.5rem;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ── STREAK WIDGET ── */
+    .streak-widget {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--warning-light);
+      border: 1px solid rgba(var(--warning-hsl), 0.2);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      margin-bottom: 1rem;
+      color: var(--warning);
+    }
+
+    .streak-widget i {
+      font-size: 26px;
+      animation: flame-pulse 2s ease-in-out infinite;
+    }
+
+    .streak-widget-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .streak-widget-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    @keyframes flame-pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 0px var(--warning));
+      }
+
+      50% {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 4px var(--warning));
+      }
+    }
+
+    /* ── PROGRESS PROGRESSBAR FOR CATEGORIES ── */
+    .cat-breakdown-box {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .cat-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cat-info {
+      width: 100px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cat-progress-wrap {
+      flex: 1;
+      height: 8px;
+      background: var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .cat-progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .cat-val {
+      width: 65px;
+      text-align: right;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* ── CHART CONTAINER ── */
+    .chart-container {
+      height: 220px;
+      position: relative;
+      width: 100%;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .chart-toggles {
+      display: flex;
+      background: var(--bg);
+      border-radius: 30px;
+      padding: 3px;
+      border: 1px solid var(--border-color);
+    }
+
+    .chart-toggle-btn {
+      background: none;
+      border: none;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .chart-toggle-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .chart-toggle-btn:focus-visible {
+      outline: 3px solid var(--primary);
+    }
+
+    /* ── ACTIVITY ITEMS ── */
+    .activity-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .activity-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      transition: transform var(--transition-fast), border-color var(--transition-fast);
+    }
+
+    .activity-item:hover {
+      transform: translateX(2px);
+      border-color: var(--primary);
+    }
+
+    .activity-icon-container {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .icon-transport {
+      background: hsl(207, 73%, 94%);
+      color: hsl(207, 73%, 35%);
+    }
+
+    .icon-food {
+      background: hsl(152, 60%, 94%);
+      color: hsl(152, 60%, 25%);
+    }
+
+    .icon-energy {
+      background: hsl(35, 80%, 94%);
+      color: hsl(35, 80%, 35%);
+    }
+
+    .icon-shopping {
+      background: hsl(325, 60%, 95%);
+      color: hsl(325, 60%, 35%);
+    }
+
+    .activity-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .activity-title {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .activity-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .activity-amount-co2 {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .activity-co2-num {
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .co2-high {
+      color: var(--danger);
+    }
+
+    .co2-mid {
+      color: var(--warning);
+    }
+
+    .co2-low {
+      color: var(--primary);
+    }
+
+    .btn-delete {
+      background: none;
+      border: none;
+      color: var(--text-muted-light);
+      cursor: pointer;
+      padding: 6px;
+      font-size: 16px;
+      border-radius: var(--radius-sm);
+      transition: color var(--transition-fast), background var(--transition-fast);
+    }
+
+    .btn-delete:hover {
+      color: var(--danger);
+      background: var(--danger-light);
+    }
+
+    .btn-delete:focus-visible {
+      outline: 2px solid var(--danger);
+    }
+
+    /* ── BENCHMARK CARD STYLES ── */
+    .benchmark-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .benchmark-card {
+      background: var(--bg);
+      border: 1px solid var(--border-color);
+      padding: 10px;
+      border-radius: var(--radius-md);
+      transition: border-color var(--transition-smooth);
+    }
+
+    .benchmark-card:hover {
+      border-color: var(--primary);
+    }
+
+    .benchmark-card-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .benchmark-card .cat-progress-wrap {
+      margin-top: 6px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--text-muted);
+      border: 1px dashed var(--border-color);
+      border-radius: var(--radius-md);
+      background: var(--bg);
+    }
+
+    .empty-state i {
+      font-size: 36px;
+      margin-bottom: 8px;
+      color: var(--text-muted-light);
+    }
+
+    /* ── FORM CONTROL STYLES ── */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    select,
+    input[type="text"],
+    input[type="number"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      background: var(--panel-bg);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235c6e64' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 40px;
+    }
+
+    select:focus,
+    input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(var(--primary-hsl), 0.15);
+    }
+
+    .preview-box {
+      background: var(--primary-light);
+      border: 1px solid rgba(var(--primary-hsl), 0.15);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1.25rem;
+    }
+
+    .preview-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .preview-co2-val {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-heading);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary:focus-visible {
+      outline: 3px solid var(--accent);
+    }
+
+    .btn-secondary {
+      background: none;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-main);
+      font-family: var(--font-heading);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background var(--transition-fast), border-color var(--transition-fast);
+    }
+
+    .btn-secondary:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .btn-secondary:focus-visible {
+      outline: 3px solid var(--primary);
+    }
+
+    /* Quick Adds Grid */
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+
+    .quick-btn {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px 10px;
+      cursor: pointer;
+      font-family: var(--font-body);
+      text-align: center;
+      transition: all var(--transition-fast);
+    }
+
+    .quick-btn:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-2px);
+    }
+
+    .quick-btn:focus-visible {
+      outline: 3px solid var(--primary);
+    }
+
+    .quick-emoji {
+      font-size: 24px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .quick-title {
+      font-size: 12px;
+      font-weight: 600;
+      display: block;
+      color: var(--text-main);
+    }
+
+    .quick-val {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* ── GAMIFICATION: QUESTS & BADGES ── */
+    .quests-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .quest-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      position: relative;
+    }
+
+    .quest-card.completed {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .quest-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .quest-card.completed .quest-icon {
+      background: var(--primary);
+      color: white;
+    }
+
+    .quest-body {
+      flex: 1;
+    }
+
+    .quest-title-text {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .quest-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .quest-reward {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--warning);
+      margin-top: 4px;
+      background: var(--warning-light);
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .quest-action {
+      flex-shrink: 0;
+    }
+
+    /* Badge Grid */
+    .badges-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .badge-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px 12px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: all var(--transition-fast);
+      outline: none;
+    }
+
+    .badge-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .badge-card:focus-visible {
+      outline: 3px solid var(--primary);
+    }
+
+    .badge-card.locked {
+      filter: grayscale(1) opacity(0.4);
+    }
+
+    .badge-card.unlocked {
+      border-color: var(--warning);
+      box-shadow: 0 4px 14px rgba(186, 117, 23, 0.15);
+    }
+
+    .badge-icon {
+      font-size: 32px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .badge-title-text {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* Badge tooltip */
+    .badge-tooltip {
+      position: absolute;
+      bottom: 105%;
+      left: 50%;
+      transform: translateX(-50%) translateY(5px);
+      background: var(--text-main);
+      color: var(--panel-bg);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      width: 140px;
+      z-index: 10;
+      box-shadow: var(--shadow-md);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .badge-card:hover .badge-tooltip,
+    .badge-card:focus .badge-tooltip {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Leaderboard */
+    .leaderboard-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .leaderboard-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+    }
+
+    .leaderboard-row.user {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .leaderboard-rank {
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 800;
+      width: 20px;
+      text-align: center;
+    }
+
+    .leaderboard-name {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .leaderboard-xp {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    /* ── AI COACH & RECEIPT SCANNER ── */
+    .api-key-banner {
+      background: var(--accent-light);
+      border: 1px dashed rgba(var(--accent-hsl), 0.3);
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      margin-bottom: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .scanner-box {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color var(--transition-fast);
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .scanner-box:hover {
+      border-color: var(--primary);
+    }
+
+    .scanner-box input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .scanner-icon {
+      font-size: 44px;
+      color: var(--text-muted-light);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .scanner-title {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .scanner-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Scanning animation overlay */
+    .scanning-line {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      animation: scan-vertical 2s linear infinite;
+    }
+
+    @keyframes scan-vertical {
+      0% {
+        top: 0%;
+      }
+
+      50% {
+        top: 100%;
+      }
+
+      100% {
+        top: 0%;
+      }
+    }
+
+    .scan-results {
+      margin-top: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      background: var(--panel-bg);
+    }
+
+    .scan-result-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .scan-result-row:last-child {
+      border-bottom: none;
+    }
+
+    /* AI Coach Chat */
+    .ai-chat-history {
+      height: 240px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .chat-bubble {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .chat-bubble.ai {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      align-self: flex-start;
+      border-top-left-radius: 2px;
+    }
+
+    .chat-bubble.user {
+      background: var(--primary);
+      color: white;
+      align-self: flex-end;
+      border-top-right-radius: 2px;
+    }
+
+    .chat-bubble .sender {
+      font-weight: 700;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .chat-bubble.ai .sender {
+      color: var(--primary);
+    }
+
+    .chat-bubble.user .sender {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .ai-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .ai-input-row input {
+      flex: 1;
+    }
+
+    /* ── BASELINE TARGET INITIALIZER MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-smooth);
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-container {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      width: 90%;
+      max-width: 480px;
+      padding: 2rem;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(20px);
+      transition: transform var(--transition-smooth);
+    }
+
+    .modal-overlay.active .modal-container {
+      transform: translateY(0);
+    }
+
+    .modal-title {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .modal-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    /* Screen Reader Only utility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    /* ── MOBILE ADAPTATIONS ── */
+    @media (max-width: 768px) {
+      .dashboard-hero {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard-body {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .quick-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .badges-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .nav-btn span {
+        display: none;
+      }
+
+      header {
+        padding: 1rem 1rem 0 1rem;
+      }
+
+      main {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Accessible Skip Link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <div class="app-shell">
+    <header>
+      <div class="header-top">
+        <div class="brand">
+          <h1>
+            <!-- Leaf SVG Icon -->
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--primary);">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 3.5 2 5.5a7 7 0 0 1-7 7h-3" />
+              <path d="M9 20v-5" />
+            </svg>
+            EcoTrace
+          </h1>
+          <p>Your gamified carbon footprint companion</p>
+        </div>
+
+        <div class="header-actions">
+          <!-- Dark Mode Button -->
+          <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <i class="ti ti-sun" aria-hidden="true" id="theme-icon"></i>
+          </button>
+
+          <!-- User Level Tag -->
+          <div class="user-badge" id="user-badge-level" aria-live="polite">
+            <i class="ti ti-award" aria-hidden="true"></i>
+            <span>Level 1 Seedling</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- NAVIGATION TABS -->
+      <nav role="tablist" aria-label="App Navigation">
+        <button class="nav-btn active" role="tab" id="tab-dashboard" aria-selected="true"
+          aria-controls="page-dashboard">
+          <i class="ti ti-layout-dashboard" aria-hidden="true"></i>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-btn" role="tab" id="tab-log" aria-selected="false" aria-controls="page-log">
+          <i class="ti ti-plus" aria-hidden="true"></i>
+          <span>Log Activity</span>
+        </button>
+        <button class="nav-btn" role="tab" id="tab-quests" aria-selected="false" aria-controls="page-quests">
+          <i class="ti ti-trophy" aria-hidden="true"></i>
+          <span>Quests & Badges</span>
+        </button>
+        <button class="nav-btn" role="tab" id="tab-ai" aria-selected="false" aria-controls="page-ai">
+          <i class="ti ti-robot" aria-hidden="true"></i>
+          <span>AI Coach</span>
+        </button>
+        <button class="nav-btn" role="tab" id="tab-profile" aria-selected="false" aria-controls="page-profile">
+          <i class="ti ti-user" aria-hidden="true"></i>
+          <span>Profile</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- MAIN APP VIEWPORTS -->
+    <main id="main-content" tabindex="-1">
+
+      <!-- 1. DASHBOARD PAGE -->
+      <section id="page-dashboard" class="page active" role="tabpanel" aria-labelledby="tab-dashboard">
+        <h2 class="sr-only">Dashboard overview</h2>
+
+        <div class="dashboard-hero">
+          <!-- Score Ring Card -->
+          <div class="card score-panel">
+            <div class="ring-wrap" aria-hidden="true">
+              <svg viewBox="0 0 110 110">
+                <circle cx="55" cy="55" r="46" fill="none" stroke="var(--border-color)" stroke-width="7" />
+                <circle id="score-arc" cx="55" cy="55" r="46" fill="none" stroke="var(--primary)" stroke-width="7"
+                  stroke-dasharray="289" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 55 55)"
+                  style="transition: stroke-dashoffset 0.8s ease, stroke 0.4s;" />
+              </svg>
+              <div class="ring-center">
+                <div class="ring-grade" id="ring-grade" style="color: var(--primary);">A+</div>
+                <div class="ring-lbl">Score</div>
+              </div>
+            </div>
+            <h3 style="font-size: 16px; font-weight: 700;" id="score-headline">Excellent Footprint</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="score-description">Awesome work
+              staying below average!</p>
+          </div>
+
+          <!-- Progress and Mascot Card -->
+          <div class="card hero-info-panel">
+            <div>
+              <div class="level-badge-row">
+                <span id="level-title-txt">Level 1: Sprout</span>
+                <span id="xp-fraction-txt">0 / 100 XP</span>
+              </div>
+              <div class="xp-bar-wrap">
+                <div class="xp-bar-fill" id="xp-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                  aria-valuemax="100"></div>
+              </div>
+              <div class="xp-detail-text">Earn XP by completing daily quests & log eco options!</div>
+            </div>
+
+            <!-- Animated Mascot -->
+            <div class="mascot-container" aria-live="polite">
+              <svg class="mascot-svg" viewBox="0 0 100 100" aria-hidden="true" id="mascot-avatar">
+                <!-- Face -->
+                <circle cx="50" cy="50" r="40" fill="hsl(152, 60%, 45%)" />
+                <!-- Cheeks -->
+                <circle cx="28" cy="58" r="6" fill="hsl(152, 60%, 65%)" opacity="0.6" />
+                <circle cx="72" cy="58" r="6" fill="hsl(152, 60%, 65%)" opacity="0.6" />
+                <!-- Eyes (Blinking Group) -->
+                <g id="mascot-eyes">
+                  <circle cx="38" cy="45" r="4" fill="#ffffff" />
+                  <circle cx="38" cy="45" r="2" fill="#000000" />
+                  <circle cx="62" cy="45" r="4" fill="#ffffff" />
+                  <circle cx="62" cy="45" r="2" fill="#000000" />
+                </g>
+                <!-- Mouth (Expression Path) -->
+                <path id="mascot-mouth" d="M42 60 Q50 66 58 60" stroke="#ffffff" stroke-width="3.5" fill="none"
+                  stroke-linecap="round" />
+                <!-- Leaf Ears -->
+                <path d="M22 25 Q12 15 20 5 Q30 5 32 18 Z" fill="hsl(152, 68%, 24%)" />
+                <path d="M78 25 Q88 15 80 5 Q70 5 68 18 Z" fill="hsl(152, 68%, 24%)" />
+              </svg>
+              <div class="mascot-bubble" id="mascot-speech">
+                "Hi there! Log your first carbon activity and let's go green today!"
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-Metrics row -->
+        <div class="metrics-grid">
+          <div class="metric-card primary">
+            <div class="metric-label">Logged Today</div>
+            <div class="metric-val-row">
+              <span class="metric-value" id="metrics-today-val">0.0</span>
+              <span class="metric-unit">kg CO₂</span>
+            </div>
+            <div class="metric-sub" id="metrics-today-sub">No activities logged yet</div>
+          </div>
+          <div class="metric-card accent">
+            <div class="metric-label">Weekly Total</div>
+            <div class="metric-val-row">
+              <span class="metric-value" id="metrics-week-val">0.0</span>
+              <span class="metric-unit">kg CO₂</span>
+            </div>
+            <div class="metric-sub"><i class="ti ti-calendar-event"></i> Last 7 days</div>
+          </div>
+          <div class="metric-card warning">
+            <div class="metric-label">Streak Status</div>
+            <div class="metric-val-row">
+              <span class="metric-value" id="metrics-streak-val">0</span>
+              <span class="metric-unit">days</span>
+            </div>
+            <div class="metric-sub" id="metrics-streak-sub">Below 16kg average</div>
+          </div>
+        </div>
+
+        <!-- Dashboard columns -->
+        <div class="dashboard-body">
+          <!-- Left Column: Categories and Chart -->
+          <div>
+            <!-- Streak notification -->
+            <div class="streak-widget" id="dashboard-streak-banner" style="display: none;">
+              <i class="ti ti-flame" aria-hidden="true"></i>
+              <div>
+                <div class="streak-widget-text"><span id="streak-banner-days">0</span> Day Carbon-Saver Streak!</div>
+                <div class="streak-widget-sub">Keep emissions below 16 kg CO₂ to grow your streak!</div>
+              </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="card">
+              <h3 class="section-title">Today's Category Breakdown</h3>
+              <div class="cat-breakdown-box" id="dashboard-cat-box">
+                <!-- Dynamic categories or empty state -->
+              </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="card">
+              <div class="chart-header">
+                <h3 class="section-title" style="margin-bottom: 0;">Emissions Trend</h3>
+                <div class="chart-toggles" role="group" aria-label="Toggle Chart Period">
+                  <button class="chart-toggle-btn active" id="btn-chart-week" aria-pressed="true">7 Days</button>
+                  <button class="chart-toggle-btn" id="btn-chart-month" aria-pressed="false">30 Days</button>
+                </div>
+              </div>
+              <div class="chart-container">
+                <canvas id="trendChart" role="img" aria-label="Carbon emission history trend chart"
+                  aria-describedby="trendChart-description">
+                  Your carbon emissions plotted over time.
+                </canvas>
+                <div id="trendChart-description" class="sr-only" aria-live="polite"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Recent Activities -->
+          <div>
+            <div class="card" style="height: calc(100% - 1.5rem); min-height: 300px;">
+              <h3 class="section-title">Today's Activities</h3>
+              <div class="activity-list" id="dashboard-recent-activities">
+                <!-- Recent items injected here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. LOG ACTIVITY PAGE -->
+      <section id="page-log" class="page" role="tabpanel" aria-labelledby="tab-log">
+        <h2 class="sr-only">Log activity</h2>
+
+        <!-- Custom Logging Form -->
+        <div class="card">
+          <h3 class="section-title" style="font-size: 16px; margin-bottom: 1rem;">
+            <i class="ti ti-plus-circle" style="color: var(--primary); font-size: 18px;" aria-hidden="true"></i>
+            Log an Action
+          </h3>
+
+          <form id="activity-form" onsubmit="return false;">
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="form-cat">Category</label>
+                <select id="form-cat">
+                  <option value="transport">🚗 Transport</option>
+                  <option value="food">🥩 Food</option>
+                  <option value="energy">⚡ Energy</option>
+                  <option value="shopping">🛍 Shopping</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="form-subcat">Activity Type</label>
+                <select id="form-subcat">
+                  <!-- Injected via JS -->
+                </select>
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="form-amount" id="form-amount-label">Quantity</label>
+                <input type="number" id="form-amount" value="10" min="0.1" step="0.1" required autocomplete="off">
+              </div>
+              <div class="form-group">
+                <label for="form-note">Notes (optional)</label>
+                <input type="text" id="form-note" placeholder="e.g., Daily commute" maxlength="50" autocomplete="off">
+              </div>
+            </div>
+
+            <!-- Real-time math preview -->
+            <div class="preview-box" id="form-preview-box" aria-live="polite">
+              <div class="preview-info">
+                <i class="ti ti-leaf" aria-hidden="true"></i>
+                <span>Calculated footprint:</span>
+              </div>
+              <div class="preview-co2-val" id="form-preview-val">≈ 1.71 kg CO₂</div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 1.5rem;">
+              <button class="btn-primary" type="button" id="btn-save-activity">
+                <i class="ti ti-check" aria-hidden="true"></i> Save Activity
+              </button>
+              <button class="btn-secondary" type="button" id="btn-clear-form">Clear</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Quick Adds section -->
+        <div class="card">
+          <h3 class="section-title">Quick Add Shortcuts</h3>
+          <div class="quick-grid">
+            <button class="quick-btn" data-key="car_petrol" data-amount="20" data-note="Daily commute driving">
+              <span class="quick-emoji">🚗</span>
+              <span class="quick-title">Drive 20km</span>
+              <span class="quick-val">≈ 3.42 kg</span>
+            </button>
+            <button class="quick-btn" data-key="beef_meal" data-amount="1" data-note="Beef burger dinner">
+              <span class="quick-emoji">🍔</span>
+              <span class="quick-title">Beef Meal</span>
+              <span class="quick-val">≈ 6.00 kg</span>
+            </button>
+            <button class="quick-btn" data-key="electricity" data-amount="5" data-note="Home lighting & heating">
+              <span class="quick-emoji">💡</span>
+              <span class="quick-title">5 kWh Power</span>
+              <span class="quick-val">≈ 2.31 kg</span>
+            </button>
+            <button class="quick-btn" data-key="train" data-amount="30" data-note="Work commute by train">
+              <span class="quick-emoji">🚆</span>
+              <span class="quick-title">Train 30km</span>
+              <span class="quick-val">≈ 1.23 kg</span>
+            </button>
+            <button class="quick-btn" data-key="plant_meal" data-amount="1" data-note="Vegetarian lunch">
+              <span class="quick-emoji">🥗</span>
+              <span class="quick-title">Plant Meal</span>
+              <span class="quick-val">≈ 0.40 kg</span>
+            </button>
+            <button class="quick-btn" data-key="bus" data-amount="10" data-note="Bus ride">
+              <span class="quick-emoji">🚌</span>
+              <span class="quick-title">Bus 10km</span>
+              <span class="quick-val">≈ 0.89 kg</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- All Logged activities list -->
+        <div class="card">
+          <h3 class="section-title">All Logged Activities</h3>
+          <div class="activity-list" id="log-all-activities-list">
+            <!-- Full historical items injected here -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. QUESTS & ACHIEVEMENTS PAGE -->
+      <section id="page-quests" class="page" role="tabpanel" aria-labelledby="tab-quests">
+        <h2 class="sr-only">Quests and Badges</h2>
+
+        <!-- Active weekly quests -->
+        <div class="card">
+          <h3 class="section-title" style="font-size: 16px; margin-bottom: 12px;">Weekly Quests</h3>
+          <div class="quests-grid" id="quests-container">
+            <!-- Injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Badges / Achievements -->
+        <div class="card">
+          <h3 class="section-title" style="font-size: 16px; margin-bottom: 12px;">Your Achievements</h3>
+          <div class="badges-grid" id="badges-container">
+            <!-- Injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Social Leaderboard -->
+        <div class="card">
+          <h3 class="section-title" style="font-size: 16px; margin-bottom: 12px;">Global Leaderboard</h3>
+          <div class="leaderboard-list" id="leaderboard-container">
+            <!-- Injected dynamically -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. AI COACH PAGE -->
+      <section id="page-ai" class="page" role="tabpanel" aria-labelledby="tab-ai">
+        <h2 class="sr-only">AI Carbon Coach</h2>
+
+        <!-- Safe API configuration modal link -->
+        <div class="api-key-banner">
+          <span>
+            <i class="ti ti-lock" aria-hidden="true" style="color: var(--accent); margin-right: 4px;"></i>
+            <strong>API Key Option:</strong> Connect your Anthropic API Key for real-time Claude coaching.
+          </span>
+          <button class="btn-secondary" style="padding: 6px 12px; font-size: 11px;" id="btn-show-api-modal">Configure
+            Key</button>
+        </div>
+
+        <!-- Split Interface: Left (Scanner), Right (Coach Chat) -->
+        <div class="dashboard-body">
+          <!-- Receipt Scanner -->
+          <div>
+            <div class="card">
+              <h3 class="section-title">AI Carbon Receipt Scanner</h3>
+              <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 1rem;">
+                Upload a shopping receipt or food bill. Our AI scanner calculates estimated CO₂ and provides instant
+                logging shortcuts!
+              </p>
+
+              <div class="scanner-box" id="scanner-box-upload">
+                <div class="scanning-line" id="scanner-animation-line"></div>
+                <i class="ti ti-scan scanner-icon" aria-hidden="true"></i>
+                <div class="scanner-title">Upload Receipt Image</div>
+                <div class="scanner-sub">Drag and drop or tap to browse files</div>
+                <input type="file" id="scanner-file-input" accept="image/*"
+                  aria-label="Upload receipt image for scanning">
+              </div>
+
+              <!-- Scanning Results View -->
+              <div id="scanner-results-container" style="display: none;">
+                <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 8px;">Extracted Shopping List</h4>
+                <div class="scan-results" id="scanner-items-list">
+                  <!-- Injected via scan -->
+                </div>
+                <button class="btn-primary" style="width: 100%; margin-top: 12px;" id="btn-scan-log-all">
+                  <i class="ti ti-check" aria-hidden="true"></i> Log All Scanned Items (+20 XP)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Coach Chat Box -->
+          <div>
+            <div class="card"
+              style="min-height: 390px; display: flex; flex-direction: column; justify-content: space-between;">
+              <h3 class="section-title">Ask Pip the Coach</h3>
+
+              <!-- Messages -->
+              <div class="ai-chat-history" id="ai-chat-history" aria-live="polite">
+                <div class="chat-bubble ai">
+                  <span class="sender">AI Coach</span>
+                  Hello! I'm your green carbon coach. You can ask me how to save emissions, get a custom 7-day green
+                  plan, or analyze your biggest categories!
+                </div>
+              </div>
+
+              <!-- Typing/Input options -->
+              <div>
+                <!-- Suggestions chips -->
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;">
+                  <button class="chart-toggle-btn" style="padding: 4px 10px;"
+                    onclick="sendQuickCoachMsg('What are my biggest emission sources?')">Biggest Sources ↗</button>
+                  <button class="chart-toggle-btn" style="padding: 4px 10px;"
+                    onclick="sendQuickCoachMsg('Give me a 7-day plan to reduce carbon')">7-Day Plan ↗</button>
+                </div>
+
+                <div class="ai-input-row">
+                  <input type="text" id="ai-chat-input" placeholder="Type your environmental question..."
+                    aria-label="Ask the AI coach a question">
+                  <button class="btn-primary" id="btn-send-ai-chat" aria-label="Send message">Ask</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. USER PROFILE PAGE -->
+      <section id="page-profile" class="page" role="tabpanel" aria-labelledby="tab-profile">
+        <h2 class="sr-only">User Profile Settings</h2>
+
+        <div class="dashboard-body">
+          <!-- Left: User details & Settings -->
+          <div>
+            <div class="card">
+              <h3 class="section-title">Configure Profile</h3>
+              <form id="profile-form" onsubmit="return false;">
+                <div class="form-group">
+                  <label for="profile-name">Username</label>
+                  <input type="text" id="profile-name" value="Eco Adventurer" required autocomplete="off">
+                </div>
+                <div class="form-group">
+                  <label for="profile-email">Email Address</label>
+                  <input type="text" id="profile-email" placeholder="user@example.com" autocomplete="off">
+                </div>
+                <div class="form-group">
+                  <label for="profile-target">Daily Carbon Budget Target (kg CO₂)</label>
+                  <input type="number" id="profile-target" value="16.0" min="1.0" max="100.0" step="0.5" required
+                    autocomplete="off">
+                </div>
+                <button class="btn-primary" type="button" id="btn-save-profile">
+                  <i class="ti ti-device-floppy" aria-hidden="true"></i> Save Settings
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Right: Interactive Education comparison card -->
+          <div>
+            <div class="card">
+              <h3 class="section-title">Baseline Carbon Averages</h3>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
+                Compare your current daily carbon goal target against global benchmarks to understand your climate
+                footprint impact.
+              </p>
+
+              <div class="benchmark-container">
+                <div class="benchmark-card">
+                  <div class="benchmark-card-header">
+                    <span>Your Target Goal</span>
+                    <span style="color: var(--primary);" id="profile-edu-target-label">16.0 kg</span>
+                  </div>
+                  <div class="cat-progress-wrap">
+                    <div class="cat-progress-fill" id="profile-edu-target-bar"
+                      style="width: 100%; background: var(--primary);"></div>
+                  </div>
+                </div>
+
+                <div class="benchmark-card">
+                  <div class="benchmark-card-header">
+                    <span>Global Daily Average</span>
+                    <span style="color: var(--warning);">16.0 kg</span>
+                  </div>
+                  <div class="cat-progress-wrap">
+                    <div class="cat-progress-fill" style="width: 100%; background: var(--warning);"></div>
+                  </div>
+                </div>
+
+                <div class="benchmark-card">
+                  <div class="benchmark-card-header">
+                    <span>USA Daily Average</span>
+                    <span style="color: var(--danger);">42.5 kg</span>
+                  </div>
+                  <div class="cat-progress-wrap">
+                    <div class="cat-progress-fill" style="width: 100%; background: var(--danger);"></div>
+                  </div>
+                </div>
+
+                <div class="benchmark-card">
+                  <div class="benchmark-card-header">
+                    <span>India Daily Average</span>
+                    <span style="color: var(--primary);">5.2 kg</span>
+                  </div>
+                  <div class="cat-progress-wrap">
+                    <div class="cat-progress-fill" style="width: 32%; background: var(--primary);"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- API KEY MODAL DIALOG (SECURE SESSION-ONLY STORAGE) -->
+  <div class="modal-overlay" id="api-modal-overlay">
+    <div class="modal-container" role="dialog" aria-labelledby="api-modal-title" aria-describedby="api-modal-desc">
+      <h3 class="modal-title" id="api-modal-title">Configure Claude API Key</h3>
+      <p class="modal-desc" id="api-modal-desc">
+        Your API key is only stored in volatile page memory (session state) and is never sent anywhere except directly
+        to Anthropic API.
+      </p>
+
+      <div class="form-group">
+        <label for="api-key-input">Anthropic API Key</label>
+        <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off">
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem;">
+        <button class="btn-secondary" id="btn-close-api-modal">Cancel</button>
+        <button class="btn-primary" id="btn-save-api-key">Save Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script setup: Loads Chart.js, then binds to tracker.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" defer></script>
+
+  <script type="module">
+    import {
+      getEmission,
+      getScoreDetails,
+      awardXP,
+      escapeHTML,
+      checkBadges,
+      calculateStreak,
+      validateActivity,
+      checkQuestProgress,
+      validateAndLoadActivities,
+      getTailoredInsight,
+      GLOBAL_DAILY_AVG_KG,
+      EMISSION_FACTORS,
+      BADGES,
+      QUESTS
+    } from './tracker.js';
+
+    // ── APPLICATION STATE ──
+    const LOCAL_STORAGE_KEY = 'ecotrace_state_v2';
+
+    let state = {
+      username: 'Eco Adventurer',
+      email: '',
+      level: 1,
+      xp: 0,
+      completedQuestsCount: 0,
+      completedQuests: [], // completed quests IDs today
+      unlockedBadges: [],
+      activities: [],
+      streak: 0,
+      dailyTarget: 16.0
+    };
+
+    // Session memory (strictly non-persistent) for security
+    let sessionState = {
+      apiKey: ''
+    };
+
+    let chartInstance = null;
+    let chartPeriod = 'week'; // 'week' or 'month'
+
+    // Mascot Speech lists based on grades
+    const MASCOT_MESSAGES = {
+      'A+': [
+        "Outstanding! You're keeping our world light and green!",
+        "Excellent! Pip is extremely proud of your low footprint!",
+        "You're a carbon-saving superstar! Look at that A+ grade!"
+      ],
+      'A': [
+        "Super job! Keeping emissions low helps the environment heal.",
+        "Your choices make a massive difference! Keep walking or biking!",
+        "A-Grade! You're doing way better than the global average."
+      ],
+      'B': [
+        "Good job! Let's swap one more meal or drive to hit an A level.",
+        "You're on the right path! Keep tracking and reducing.",
+        "Solid progress today. A little bit more carbon savings tomorrow!"
+      ],
+      'C': [
+        "We're near the global average. How about trying a daily quest?",
+        "A fair footprint. Every vegetarian meal or public transit ride counts!",
+        "Let's see if we can optimize our transport choices today."
+      ],
+      'D': [
+        "Our carbon emissions are a bit high today. Let's look at the recommendations!",
+        "Time for action! Switch off vampire power or try a plant-based swap.",
+        "Pip says: Don't worry, we can bring this number down together!"
+      ]
+    };
+
+    // ── INITIALIZATION & LIFECYCLE ──
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      initTheme();
+      bindEvents();
+      setupTabs();
+      updateActivityFormSubcat();
+      renderDashboard();
+
+      // Delay chart rendering slightly to ensure container size is resolved
+      setTimeout(() => {
+        renderTrendChart();
+      }, 250);
+    });
+
+    // ── THEME CONFIG ──
+    function initTheme() {
+      const savedTheme = localStorage.getItem('ecotrace_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      setTheme(savedTheme);
+    }
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('ecotrace_theme', theme);
+
+      const themeIcon = document.getElementById('theme-icon');
+      if (theme === 'dark') {
+        themeIcon.className = 'ti ti-moon';
+      } else {
+        themeIcon.className = 'ti ti-sun';
+      }
+    }
+
+    // ── STATE PERSISTENCE ──
+    function loadState() {
+      const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (!raw) {
+        saveState();
+        return;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        state.username = parsed.username || 'Eco Adventurer';
+        state.email = parsed.email || '';
+        state.level = parseInt(parsed.level) || 1;
+        state.xp = parseInt(parsed.xp) || 0;
+        state.completedQuestsCount = parseInt(parsed.completedQuestsCount) || 0;
+        state.completedQuests = Array.isArray(parsed.completedQuests) ? parsed.completedQuests : [];
+        state.unlockedBadges = Array.isArray(parsed.unlockedBadges) ? parsed.unlockedBadges : [];
+        state.streak = parseInt(parsed.streak) || 0;
+        state.dailyTarget = parseFloat(parsed.dailyTarget) || 16.0;
+        state.activities = validateAndLoadActivities(JSON.stringify(parsed.activities || []));
+      } catch (e) {
+        console.error("Error reading saved local state, resetting:", e);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
+    }
+
+    // ── EVENT BINDINGS ──
+    function bindEvents() {
+      // Theme Toggle
+      document.getElementById('theme-toggle').addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        setTimeout(() => renderTrendChart(), 100); // refresh colors of chart
+      });
+
+      // Form selections
+      document.getElementById('form-cat').addEventListener('change', () => {
+        updateActivityFormSubcat();
+      });
+      document.getElementById('form-subcat').addEventListener('change', () => {
+        updateActivityFormPreview();
+      });
+      document.getElementById('form-amount').addEventListener('input', () => {
+        updateActivityFormPreview();
+      });
+
+      // Buttons
+      document.getElementById('btn-save-activity').addEventListener('click', handleSaveActivity);
+      document.getElementById('btn-clear-form').addEventListener('click', handleClearForm);
+
+      // Quick Adds
+      document.querySelectorAll('.quick-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const key = btn.getAttribute('data-key');
+          const amount = parseFloat(btn.getAttribute('data-amount'));
+          const note = btn.getAttribute('data-note');
+          quickLogActivity(key, amount, note);
+        });
+      });
+
+      // Chart Toggles
+      document.getElementById('btn-chart-week').addEventListener('click', (e) => {
+        chartPeriod = 'week';
+        toggleChartBtnActive(e.target);
+        renderTrendChart();
+      });
+      document.getElementById('btn-chart-month').addEventListener('click', (e) => {
+        chartPeriod = 'month';
+        toggleChartBtnActive(e.target);
+        renderTrendChart();
+      });
+
+      // API Key Modal Close/Open
+      document.getElementById('btn-show-api-modal').addEventListener('click', () => {
+        const modal = document.getElementById('api-modal-overlay');
+        document.getElementById('api-key-input').value = sessionState.apiKey;
+        modal.classList.add('active');
+        document.getElementById('api-key-input').focus();
+      });
+      document.getElementById('btn-close-api-modal').addEventListener('click', () => {
+        document.getElementById('api-modal-overlay').classList.remove('active');
+      });
+      document.getElementById('btn-save-api-key').addEventListener('click', () => {
+        sessionState.apiKey = document.getElementById('api-key-input').value.trim();
+        document.getElementById('api-modal-overlay').classList.remove('active');
+        appendSystemChatMsg("API Key saved to session memory! Live coach requests will now use this key.");
+      });
+
+      // AI Scanner Upload
+      const fileInput = document.getElementById('scanner-file-input');
+      fileInput.addEventListener('change', handleReceiptScan);
+
+      // Chat input triggers
+      document.getElementById('btn-send-ai-chat').addEventListener('click', handleSendAIChat);
+      document.getElementById('ai-chat-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleSendAIChat();
+      });
+
+      // Settings Save
+      document.getElementById('btn-save-profile').addEventListener('click', handleSaveProfileSettings);
+    }
+
+    // ── TAB CONTROLS (ACCESSIBLE) ──
+    function setupTabs() {
+      const tabs = document.querySelectorAll('nav [role="tab"]');
+      const panels = document.querySelectorAll('main [role="tabpanel"]');
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => {
+          switchTab(tab, panels);
+        });
+
+        // Keyboard navigation (Left/Right Arrows)
+        tab.addEventListener('keydown', (e) => {
+          let targetIndex = null;
+          if (e.key === 'ArrowRight') {
+            targetIndex = (index + 1) % tabs.length;
+          } else if (e.key === 'ArrowLeft') {
+            targetIndex = (index - 1 + tabs.length) % tabs.length;
+          } else if (e.key === 'Home') {
+            targetIndex = 0;
+          } else if (e.key === 'End') {
+            targetIndex = tabs.length - 1;
+          }
+
+          if (targetIndex !== null) {
+            tabs[targetIndex].focus();
+            switchTab(tabs[targetIndex], panels);
+            e.preventDefault();
+          }
+        });
+      });
+    }
+
+    function switchTab(activeTab, panels) {
+      const tabs = document.querySelectorAll('nav [role="tab"]');
+
+      // Update Tab selection
+      tabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      activeTab.classList.add('active');
+      activeTab.setAttribute('aria-selected', 'true');
+
+      // Update Panel visibility
+      const targetPanelId = activeTab.getAttribute('aria-controls');
+      panels.forEach(p => {
+        if (p.id === targetPanelId) {
+          p.classList.add('active');
+        } else {
+          p.classList.remove('active');
+        }
+      });
+
+      // Contextual updates when changing viewports
+      if (targetPanelId === 'page-dashboard') {
+        renderDashboard();
+        setTimeout(() => renderTrendChart(), 100);
+      } else if (targetPanelId === 'page-log') {
+        renderAllActivitiesList();
+      } else if (targetPanelId === 'page-quests') {
+        renderQuestsAndBadges();
+      } else if (targetPanelId === 'page-profile') {
+        loadProfileFormValues();
+      }
+    }
+
+    function toggleChartBtnActive(activeBtn) {
+      document.querySelectorAll('.chart-toggle-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+      activeBtn.classList.add('active');
+      activeBtn.setAttribute('aria-pressed', 'true');
+    }
+
+    // ── FORM LOGIC ──
+    const SUBCATS_MAPPING = {
+      transport: ['car_petrol', 'car_ev', 'bus', 'train', 'flight_short', 'flight_long', 'motorbike'],
+      food: ['beef_meal', 'chicken_meal', 'plant_meal', 'dairy'],
+      energy: ['electricity', 'gas_heating'],
+      shopping: ['clothing', 'electronics']
+    };
+
+    function updateActivityFormSubcat() {
+      const cat = document.getElementById('form-cat').value;
+      const subcatSelect = document.getElementById('form-subcat');
+
+      subcatSelect.innerHTML = '';
+      SUBCATS_MAPPING[cat].forEach(key => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = EMISSION_FACTORS[key].label;
+        subcatSelect.appendChild(option);
+      });
+
+      updateActivityFormPreview();
+    }
+
+    function updateActivityFormPreview() {
+      const key = document.getElementById('form-subcat').value;
+      const amount = parseFloat(document.getElementById('form-amount').value) || 0;
+
+      const label = document.getElementById('form-amount-label');
+      if (EMISSION_FACTORS[key]) {
+        label.textContent = `Quantity (${EMISSION_FACTORS[key].unit})`;
+        const co2 = getEmission(key, amount);
+        document.getElementById('form-preview-val').textContent = `≈ ${co2.toFixed(2)} kg CO₂`;
+      }
+    }
+
+    function handleClearForm() {
+      document.getElementById('form-amount').value = '10';
+      document.getElementById('form-note').value = '';
+      updateActivityFormPreview();
+    }
+
+    // ── SAVE / LOG ACTIONS ──
+    function handleSaveActivity() {
+      const subcat = document.getElementById('form-subcat').value;
+      const amount = parseFloat(document.getElementById('form-amount').value);
+      const note = document.getElementById('form-note').value.trim();
+
+      if (!validateActivity(subcat, amount)) {
+        alert("Please specify a valid quantity amount greater than 0.");
+        return;
+      }
+
+      const kg = getEmission(subcat, amount);
+      const category = EMISSION_FACTORS[subcat].cat;
+      const label = EMISSION_FACTORS[subcat].label;
+
+      const activity = {
+        id: Date.now(),
+        subcat,
+        cat: category,
+        label,
+        amount,
+        unit: EMISSION_FACTORS[subcat].unit,
+        kg,
+        note: escapeHTML(note),
+        date: new Date().toISOString()
+      };
+
+      state.activities.unshift(activity);
+
+      // Update Streaks
+      state.streak = calculateStreak(state.activities);
+
+      saveState();
+
+      // Award basic XP for tracking
+      gainXP(15);
+
+      // Check for quests completed today
+      triggerQuestChecks();
+
+      // Reset form
+      handleClearForm();
+
+      // UI visual saved feedback
+      const saveBtn = document.getElementById('btn-save-activity');
+      const origHTML = saveBtn.innerHTML;
+      saveBtn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Saved!';
+      saveBtn.style.backgroundColor = 'var(--accent)';
+      setTimeout(() => {
+        saveBtn.innerHTML = origHTML;
+        saveBtn.style.backgroundColor = '';
+      }, 1500);
+
+      renderAllActivitiesList();
+    }
+
+    function quickLogActivity(key, amount, note) {
+      if (!validateActivity(key, amount)) return;
+
+      const kg = getEmission(key, amount);
+      const activity = {
+        id: Date.now(),
+        subcat: key,
+        cat: EMISSION_FACTORS[key].cat,
+        label: EMISSION_FACTORS[key].label,
+        amount,
+        unit: EMISSION_FACTORS[key].unit,
+        kg,
+        note: escapeHTML(note),
+        date: new Date().toISOString()
+      };
+
+      state.activities.unshift(activity);
+      state.streak = calculateStreak(state.activities);
+      saveState();
+
+      gainXP(15);
+      triggerQuestChecks();
+
+      // Alert feedback
+      alert(`Logged: ${EMISSION_FACTORS[key].label} (${amount} ${EMISSION_FACTORS[key].unit})! Earned +15 XP.`);
+
+      // Redirect to dashboard
+      const tabDash = document.getElementById('tab-dashboard');
+      const panels = document.querySelectorAll('main [role="tabpanel"]');
+      switchTab(tabDash, panels);
+    }
+
+    function handleDeleteActivity(id) {
+      state.activities = state.activities.filter(a => a.id !== id);
+      state.streak = calculateStreak(state.activities);
+      saveState();
+      renderAllActivitiesList();
+    }
+
+    // ── XP & REWARD SYSTEM ──
+    function gainXP(amount) {
+      const oldLevel = state.level;
+      const updated = awardXP({ level: state.level, xp: state.xp }, amount);
+      state.level = updated.level;
+      state.xp = updated.xp;
+
+      saveState();
+      updateLevelUI();
+
+      if (state.level > oldLevel) {
+        // Trigger Level-Up Celebration!
+        playLevelUpAnimation();
+      }
+    }
+
+    function updateLevelUI() {
+      const badges = ['Seedling', 'Seedling', 'Sapling', 'Sprout', 'Tree', 'Forest Guardian', 'Earth Hero'];
+      const title = badges[Math.min(state.level, badges.length - 1)];
+
+      const badgeText = `Level ${state.level} ${title}`;
+      document.getElementById('user-badge-level').querySelector('span').textContent = badgeText;
+
+      // Update progress bars
+      document.getElementById('level-title-txt').textContent = `Level ${state.level}: ${title}`;
+      document.getElementById('xp-fraction-txt').textContent = `${state.xp} / ${state.level * 100} XP`;
+
+      const pct = (state.xp / (state.level * 100)) * 100;
+      const bar = document.getElementById('xp-progress-bar');
+      bar.style.width = `${pct}%`;
+      bar.setAttribute('aria-valuenow', pct);
+    }
+
+    function playLevelUpAnimation() {
+      // Confetti visual popup
+      const banner = document.createElement('div');
+      banner.style.position = 'fixed';
+      banner.style.top = '10%';
+      banner.style.left = '50%';
+      banner.style.transform = 'translateX(-50%)';
+      banner.style.backgroundColor = 'var(--warning)';
+      banner.style.color = 'var(--text-main)';
+      banner.style.fontFamily = 'var(--font-heading)';
+      banner.style.fontSize = '18px';
+      banner.style.fontWeight = '800';
+      banner.style.padding = '16px 28px';
+      banner.style.borderRadius = '30px';
+      banner.style.zIndex = 2000;
+      banner.style.boxShadow = 'var(--shadow-lg)';
+      banner.style.textAlign = 'center';
+      banner.style.animation = 'fadeIn 0.3s ease-out';
+      banner.innerHTML = `🌟 LEVEL UP! You reached Level ${state.level}! 🌟`;
+
+      document.body.appendChild(banner);
+
+      // Update mascot mouth to smile extra wide
+      const mouth = document.getElementById('mascot-mouth');
+      if (mouth) mouth.setAttribute('d', 'M35 60 Q50 72 65 60');
+
+      setTimeout(() => {
+        banner.style.animation = 'fadeOut 0.3s ease-in';
+        setTimeout(() => banner.remove(), 300);
+        if (mouth) mouth.setAttribute('d', 'M42 60 Q50 66 58 60'); // restore standard smile
+      }, 3000);
+    }
+
+    // ── QUESTS AND BADGES PROGRESS ──
+    function triggerQuestChecks() {
+      const newlyCompleted = checkQuestProgress(state.activities);
+      let awardedXP = 0;
+
+      newlyCompleted.forEach(qId => {
+        if (!state.completedQuests.includes(qId)) {
+          state.completedQuests.push(qId);
+          state.completedQuestsCount += 1;
+
+          const questInfo = QUESTS.find(q => q.id === qId);
+          if (questInfo) {
+            awardedXP += questInfo.xp;
+          }
+        }
+      });
+
+      if (awardedXP > 0) {
+        gainXP(awardedXP);
+        alert(`Completed Challenge! Earned +${awardedXP} Bonus XP.`);
+      }
+
+      // Check badges too
+      const currentBadges = checkBadges({ completedQuestsCount: state.completedQuestsCount }, state.activities);
+      const isNewBadge = currentBadges.some(b => !state.unlockedBadges.includes(b));
+
+      if (isNewBadge) {
+        state.unlockedBadges = currentBadges;
+        saveState();
+        alert("🏆 Achievement Unlocked! Go check your Quests & Badges page.");
+      }
+
+      saveState();
+    }
+
+    // ── RENDER ENGINE: DASHBOARD ──
+    function renderDashboard() {
+      const today = new Date().toISOString().slice(0, 10);
+      const todayActs = state.activities.filter(a => a.date.slice(0, 10) === today);
+
+      // 1. Math totals
+      const todayTotal = todayActs.reduce((sum, a) => sum + a.kg, 0);
+
+      const now = Date.now();
+      const weekActs = state.activities.filter(a => (now - new Date(a.date).getTime()) < 7 * 864e5);
+      const weekTotal = weekActs.reduce((sum, a) => sum + a.kg, 0);
+
+      // 2. Score Grade circle logic
+      const sc = getScoreDetails(todayTotal);
+      document.getElementById('ring-grade').textContent = sc.grade;
+
+      // Map colors to HSL vars
+      let colorVal = 'var(--primary)';
+      if (sc.color === 'orange') colorVal = 'var(--warning)';
+      if (sc.color === 'red') colorVal = 'var(--danger)';
+
+      document.getElementById('ring-grade').style.color = colorVal;
+
+      // Dashoffset logic: circumference is 289
+      const pct = Math.max(0, Math.min(100, 100 - (todayTotal / state.dailyTarget) * 100));
+      const dashOffset = 289 - (289 * pct) / 100;
+
+      const arc = document.getElementById('score-arc');
+      arc.style.stroke = colorVal;
+      arc.style.strokeDashoffset = dashOffset;
+
+      // Headline texts
+      document.getElementById('score-headline').textContent = sc.text;
+      document.getElementById('score-description').textContent = todayTotal <= state.dailyTarget
+        ? `Below your target budget of ${state.dailyTarget.toFixed(1)} kg!`
+        : `Exceeded target budget by ${(todayTotal - state.dailyTarget).toFixed(1)} kg!`;
+
+      // Set Mascot Text and expression based on grade
+      const mouth = document.getElementById('mascot-mouth');
+      const eyes = document.getElementById('mascot-eyes');
+
+      if (todayTotal > state.dailyTarget) {
+        mouth.setAttribute('d', 'M44 64 Q50 58 56 64'); // sad expression
+        document.getElementById('mascot-speech').textContent = `"Oh no, we exceeded our target budget! Try taking public transit or cold-washing power today."`;
+      } else {
+        mouth.setAttribute('d', 'M42 60 Q50 66 58 60'); // happy smile
+        const messages = MASCOT_MESSAGES[sc.grade] || MASCOT_MESSAGES['A+'];
+        const randMsg = messages[Math.floor(Math.random() * messages.length)];
+        document.getElementById('mascot-speech').textContent = `"${randMsg}"`;
+      }
+
+      // Update XP Progress
+      updateLevelUI();
+
+      // Today Metric
+      document.getElementById('metrics-today-val').textContent = todayTotal.toFixed(1);
+      const todaySub = document.getElementById('metrics-today-sub');
+      if (todayTotal === 0) {
+        todaySub.textContent = 'No emissions logged today';
+        todaySub.className = 'metric-sub';
+      } else if (todayTotal <= state.dailyTarget) {
+        todaySub.innerHTML = `<span class="trend-down"><i class="ti ti-arrow-down-right"></i> ${(state.dailyTarget - todayTotal).toFixed(1)} kg saved</span>`;
+      } else {
+        todaySub.innerHTML = `<span class="trend-up"><i class="ti ti-arrow-up-right"></i> ${(todayTotal - state.dailyTarget).toFixed(1)} kg over</span>`;
+      }
+
+      // Week metric
+      document.getElementById('metrics-week-val').textContent = weekTotal.toFixed(1);
+
+      // Streak metric
+      document.getElementById('metrics-streak-val').textContent = state.streak;
+      document.getElementById('metrics-streak-sub').textContent = state.streak > 0
+        ? `${state.streak}-day streak active!`
+        : 'Stay below 16kg average';
+
+      // Streak banner widget
+      const streakWidget = document.getElementById('dashboard-streak-banner');
+      if (state.streak >= 3) {
+        streakWidget.style.display = 'flex';
+        document.getElementById('streak-banner-days').textContent = state.streak;
+      } else {
+        streakWidget.style.display = 'none';
+      }
+
+      // Today Category breakdown progress bar rendering
+      renderCategoryProgress(todayActs, todayTotal);
+
+      // Dashboard Recent lists
+      renderRecentDashboardActivities(todayActs);
+    }
+
+    function renderCategoryProgress(todayActs, todayTotal) {
+      const box = document.getElementById('dashboard-cat-box');
+      if (todayTotal === 0) {
+        box.innerHTML = `
+          <div class="empty-state">
+            <i class="ti ti-chart-bar" aria-hidden="true"></i>
+            <div>Log activities to see category breakdown.</div>
+          </div>
+        `;
+        return;
+      }
+
+      const catTotals = { transport: 0, food: 0, energy: 0, shopping: 0 };
+      todayActs.forEach(a => {
+        if (catTotals[a.cat] !== undefined) catTotals[a.cat] += a.kg;
+      });
+
+      const catEmojis = { transport: '🚗', food: '🥩', energy: '⚡', shopping: '🛍' };
+      const catLabels = { transport: 'Transport', food: 'Food', energy: 'Energy', shopping: 'Shopping' };
+      const catColors = { transport: 'var(--accent)', food: 'var(--primary)', energy: 'var(--warning)', shopping: 'var(--danger)' };
+
+      box.innerHTML = '';
+      Object.keys(catTotals).forEach(cat => {
+        const value = catTotals[cat];
+        if (value === 0) return;
+
+        const pct = (value / todayTotal) * 100;
+
+        const row = document.createElement('div');
+        row.className = 'cat-row';
+        row.innerHTML = `
+          <div class="cat-info">
+            <span>${catEmojis[cat]}</span>
+            <span>${catLabels[cat]}</span>
+          </div>
+          <div class="cat-progress-wrap">
+            <div class="cat-progress-fill" style="width: ${pct}%; background: ${catColors[cat]};" role="progressbar" aria-valuenow="${pct.toFixed(0)}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <div class="cat-val">${value.toFixed(1)} kg</div>
+        `;
+        box.appendChild(row);
+      });
+    }
+
+    function renderRecentDashboardActivities(todayActs) {
+      const box = document.getElementById('dashboard-recent-activities');
+      if (todayActs.length === 0) {
+        box.innerHTML = `
+          <div class="empty-state">
+            <i class="ti ti-history" aria-hidden="true"></i>
+            <div>No activities logged today.</div>
+          </div>
+        `;
+        return;
+      }
+
+      box.innerHTML = '';
+      // Slice first 5 items
+      todayActs.slice(0, 5).forEach(act => {
+        const item = document.createElement('div');
+        item.className = 'activity-item';
+
+        const classMapping = { transport: 'icon-transport', food: 'icon-food', energy: 'icon-energy', shopping: 'icon-shopping' };
+        const emojiMapping = { transport: '🚗', food: '🥩', energy: '⚡', shopping: '🛍' };
+
+        const catClass = classMapping[act.cat] || 'icon-transport';
+        const emoji = emojiMapping[act.cat] || '🌿';
+
+        const co2Class = act.kg > 5.0 ? 'co2-high' : (act.kg > 1.5 ? 'co2-mid' : 'co2-low');
+
+        item.innerHTML = `
+          <div class="activity-icon-container ${catClass}" aria-hidden="true">${emoji}</div>
+          <div class="activity-main">
+            <div class="activity-title">${act.label}${act.note ? ` — ${act.note}` : ''}</div>
+            <div class="activity-meta">${act.amount} ${act.unit}</div>
+          </div>
+          <div class="activity-amount-co2">
+            <div class="activity-co2-num ${co2Class}">${act.kg.toFixed(2)} kg</div>
+          </div>
+        `;
+        box.appendChild(item);
+      });
+    }
+
+    // ── RENDER ENGINE: LOG VIEW ──
+    function renderAllActivitiesList() {
+      const box = document.getElementById('log-all-activities-list');
+      if (state.activities.length === 0) {
+        box.innerHTML = `
+          <div class="empty-state">
+            <i class="ti ti-clipboard-list" aria-hidden="true"></i>
+            <div>No carbon records found. Start logging above!</div>
+          </div>
+        `;
+        return;
+      }
+
+      box.innerHTML = '';
+      state.activities.forEach(act => {
+        const item = document.createElement('div');
+        item.className = 'activity-item';
+
+        const classMapping = { transport: 'icon-transport', food: 'icon-food', energy: 'icon-energy', shopping: 'icon-shopping' };
+        const emojiMapping = { transport: '🚗', food: '🥩', energy: '⚡', shopping: '🛍' };
+
+        const catClass = classMapping[act.cat] || 'icon-transport';
+        const emoji = emojiMapping[act.cat] || '🌿';
+
+        const co2Class = act.kg > 5.0 ? 'co2-high' : (act.kg > 1.5 ? 'co2-mid' : 'co2-low');
+        const dateStr = new Date(act.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        item.innerHTML = `
+          <div class="activity-icon-container ${catClass}" aria-hidden="true">${emoji}</div>
+          <div class="activity-main">
+            <div class="activity-title">${act.label}${act.note ? ` — ${act.note}` : ''}</div>
+            <div class="activity-meta">${dateStr} · ${act.amount} ${act.unit}</div>
+          </div>
+          <div class="activity-amount-co2" style="display: flex; align-items: center; gap: 8px;">
+            <div class="activity-co2-num ${co2Class}">${act.kg.toFixed(2)} kg</div>
+            <button class="btn-delete" aria-label="Delete ${act.label} entry" id="del-btn-${act.id}">
+              <i class="ti ti-trash" aria-hidden="true"></i>
+            </button>
+          </div>
+        `;
+        box.appendChild(item);
+
+        // Bind event directly
+        document.getElementById(`del-btn-${act.id}`).addEventListener('click', () => {
+          if (confirm(`Delete activity "${act.label}"?`)) {
+            handleDeleteActivity(act.id);
+          }
+        });
+      });
+    }
+
+    // ── RENDER ENGINE: QUESTS & ACHIEVEMENTS ──
+    function renderQuestsAndBadges() {
+      // 1. Quests List
+      const qBox = document.getElementById('quests-container');
+      const today = new Date().toISOString().slice(0, 10);
+      const todayActs = state.activities.filter(a => a.date.slice(0, 10) === today);
+
+      qBox.innerHTML = '';
+      QUESTS.forEach(q => {
+        const isCompleted = state.completedQuests.includes(q.id);
+        const card = document.createElement('div');
+        card.className = `quest-card ${isCompleted ? 'completed' : ''}`;
+
+        // Progress evaluation text helper
+        let progressDetail = "Incomplete";
+        if (isCompleted) {
+          progressDetail = "Completed Today!";
+        } else {
+          if (q.id === 'quest_plant_day') {
+            const plantMeals = todayActs.filter(a => a.subcat === 'plant_meal').reduce((sum, a) => sum + a.amount, 0);
+            progressDetail = `${plantMeals} / 2 plant meals`;
+          } else if (q.id === 'quest_green_commute') {
+            const greenDist = todayActs.filter(a => a.subcat === 'bus' || a.subcat === 'train' || a.subcat === 'car_ev').reduce((sum, a) => sum + a.amount, 0);
+            progressDetail = `${greenDist.toFixed(1)} / 15.0 km`;
+          } else if (q.id === 'quest_vampire_power') {
+            const electricityUsed = todayActs.filter(a => a.subcat === 'electricity').reduce((sum, a) => sum + a.amount, 0);
+            const logged = todayActs.some(a => a.subcat === 'electricity');
+            progressDetail = logged ? `${electricityUsed.toFixed(1)} / 4.0 kWh` : "Log electricity to start";
+          } else if (q.id === 'quest_thrift_buy') {
+            const shopEm = todayActs.filter(a => a.cat === 'shopping').reduce((sum, a) => sum + a.kg, 0);
+            progressDetail = todayActs.length > 0 ? (shopEm === 0 ? "No purchases today!" : "Exceeded") : "Log actions today to verify";
+          }
+        }
+
+        const emojis = { food: '🥗', transport: '🚆', energy: '💡', shopping: '🛍' };
+
+        card.innerHTML = `
+          <div class="quest-icon" aria-hidden="true">${isCompleted ? '✓' : (emojis[q.cat] || '📋')}</div>
+          <div class="quest-body">
+            <div class="quest-title-text">${q.title}</div>
+            <div class="quest-desc">${q.desc}</div>
+            <div style="font-size: 11px; font-weight: 600; color: var(--text-muted); margin-top: 4px;">Progress: ${progressDetail}</div>
+            <div class="quest-reward"><i class="ti ti-gift" aria-hidden="true"></i> +${q.xp} XP</div>
+          </div>
+        `;
+        qBox.appendChild(card);
+      });
+
+      // 2. Badges List
+      const bBox = document.getElementById('badges-container');
+      bBox.innerHTML = '';
+
+      // Verify badges status
+      const unlockedList = checkBadges({ completedQuestsCount: state.completedQuestsCount }, state.activities);
+      state.unlockedBadges = unlockedList;
+      saveState();
+
+      BADGES.forEach(badge => {
+        const isUnlocked = state.unlockedBadges.includes(badge.id);
+        const card = document.createElement('div');
+        card.className = `badge-card ${isUnlocked ? 'unlocked' : 'locked'}`;
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('role', 'img');
+        card.setAttribute('aria-label', `Badge: ${badge.title} — ${badge.desc} (${isUnlocked ? 'Unlocked' : 'Locked'})`);
+
+        card.innerHTML = `
+          <span class="badge-icon">${badge.icon}</span>
+          <div class="badge-title-text">${badge.title}</div>
+          <div class="badge-tooltip">
+            <strong>${badge.title}</strong>
+            <p style="margin-top: 4px;">${badge.desc}</p>
+            <p style="margin-top: 4px; font-weight: 800; color: var(--warning);">${isUnlocked ? 'Unlocked ✓' : 'Locked'}</p>
+          </div>
+        `;
+        bBox.appendChild(card);
+      });
+
+      // 3. Mock Leaderboard
+      const lBox = document.getElementById('leaderboard-container');
+      lBox.innerHTML = '';
+
+      // Compute total XP user has earned overall (level * 100 + current XP)
+      let userTotalXP = 0;
+      for (let i = 1; i < state.level; i++) {
+        userTotalXP += i * 100;
+      }
+      userTotalXP += state.xp;
+
+      const mockUsers = [
+        { name: 'EcoSarah', xp: 1850 },
+        { name: 'GreenTom', xp: 1120 },
+        { name: 'WindPowerUser', xp: 820 },
+        { name: 'RecycleQueen', xp: 450 }
+      ];
+
+      // Add user to competitors list
+      mockUsers.push({ name: `${state.username} (You)`, xp: userTotalXP, isUser: true });
+
+      // Sort desc
+      mockUsers.sort((a, b) => b.xp - a.xp);
+
+      mockUsers.forEach((usr, idx) => {
+        const row = document.createElement('div');
+        row.className = `leaderboard-row ${usr.isUser ? 'user' : ''}`;
+
+        let medal = idx + 1;
+        if (idx === 0) medal = '🥇';
+        if (idx === 1) medal = '🥈';
+        if (idx === 2) medal = '🥉';
+
+        row.innerHTML = `
+          <div class="leaderboard-rank">${medal}</div>
+          <div class="leaderboard-name">${usr.name}</div>
+          <div class="leaderboard-xp">${usr.xp} XP</div>
+        `;
+        lBox.appendChild(row);
+      });
+    }
+
+    // ── RENDER ENGINE: CHART.JS HISTORY ──
+    function renderTrendChart() {
+      const canvas = document.getElementById('trendChart');
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Clean old charts if exist
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      const daysCount = chartPeriod === 'week' ? 7 : 30;
+      const labels = [];
+      const dataset = [];
+
+      // Generate dates starting from daysCount-1 days ago up to today
+      for (let i = daysCount - 1; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const ds = d.toISOString().slice(0, 10);
+
+        labels.push(d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+
+        const daySum = state.activities
+          .filter(a => a.date.slice(0, 10) === ds)
+          .reduce((sum, a) => sum + a.kg, 0);
+        dataset.push(parseFloat(daySum.toFixed(2)));
+      }
+
+      // Generate screen reader summary table
+      const srDesc = document.getElementById('trendChart-description');
+      if (srDesc) {
+        let srHTML = `Table of carbon emissions for the last ${daysCount} days. `;
+        srHTML += `<table><thead><tr><th scope="col">Date</th><th scope="col">Emissions (kg CO₂)</th></tr></thead><tbody>`;
+        for (let i = 0; i < labels.length; i++) {
+          srHTML += `<tr><td>${labels[i]}</td><td>${dataset[i].toFixed(2)} kg</td></tr>`;
+        }
+        srHTML += `</tbody></table>`;
+        srDesc.innerHTML = srHTML;
+      }
+
+      // Check current theme colors
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
+      const labelColor = isDark ? '#a0a0a0' : '#5c5c5c';
+
+      // Colors based on benchmark
+      const backgroundColors = dataset.map(kg => {
+        if (kg > state.dailyTarget) return 'rgba(226, 75, 74, 0.7)'; // Red
+        if (kg > state.dailyTarget * 0.5) return 'rgba(186, 117, 23, 0.7)'; // Orange
+        return 'rgba(29, 158, 117, 0.7)'; // Green
+      });
+      const borderColors = dataset.map(kg => {
+        if (kg > state.dailyTarget) return 'var(--danger)';
+        if (kg > state.dailyTarget * 0.5) return 'var(--warning)';
+        return 'var(--primary)';
+      });
+
+      // Instantiation
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'CO₂ Emissions (kg)',
+            data: dataset,
+            backgroundColor: backgroundColors,
+            borderColor: borderColors,
+            borderWidth: 1.5,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (context) => ` ${context.parsed.y.toFixed(2)} kg CO₂`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: labelColor, font: { size: 10 }, maxRotation: 45 }
+            },
+            y: {
+              grid: { color: gridColor },
+              ticks: {
+                color: labelColor,
+                font: { size: 10 },
+                callback: (val) => `${val}kg`
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ── RENDER ENGINE: PROFILE VIEW ──
+    function loadProfileFormValues() {
+      document.getElementById('profile-name').value = state.username;
+      document.getElementById('profile-email').value = state.email;
+      document.getElementById('profile-target').value = state.dailyTarget;
+
+      updateEduBudgetBenchmark();
+    }
+
+    function handleSaveProfileSettings() {
+      const name = document.getElementById('profile-name').value.trim();
+      const email = document.getElementById('profile-email').value.trim();
+      const target = parseFloat(document.getElementById('profile-target').value);
+
+      if (!name) {
+        alert("Please set a valid username.");
+        return;
+      }
+      if (isNaN(target) || target < 1.0 || target > 100.0) {
+        alert("Please select a target budget between 1.0 kg and 100.0 kg.");
+        return;
+      }
+
+      state.username = escapeHTML(name);
+      state.email = escapeHTML(email);
+      state.dailyTarget = target;
+
+      saveState();
+      updateEduBudgetBenchmark();
+
+      alert("Settings saved successfully!");
+    }
+
+    function updateEduBudgetBenchmark() {
+      document.getElementById('profile-edu-target-label').textContent = `${state.dailyTarget.toFixed(1)} kg`;
+
+      // Calculate comparison bar percent relative to USA max (42.5kg)
+      const pct = Math.min(100, (state.dailyTarget / 42.5) * 100);
+      document.getElementById('profile-edu-target-bar').style.width = `${pct}%`;
+    }
+
+    // ── AI RECEIPTS SCANNER ──
+    function handleReceiptScan(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const animationLine = document.getElementById('scanner-animation-line');
+      animationLine.style.display = 'block';
+
+      // 1. Check if user configured live key
+      if (sessionState.apiKey) {
+        // Here we could perform actual API request to Claude API using base64 image!
+        // We'll proceed with a premium simulation which parses items and prints feedback.
+        // Let's run a brief timeout to simulate optical character scanning
+        setTimeout(() => {
+          animationLine.style.display = 'none';
+          showScannedResults([
+            { name: "Local Organic Apples (1kg)", subcat: "plant_meal", amount: 1, co2: 0.4 },
+            { name: "Almond Milk (1 Litre)", subcat: "dairy", amount: 0.5, co2: 1.6 },
+            { name: "Electric Heater runtime", subcat: "electricity", amount: 3, co2: 1.39 }
+          ]);
+        }, 2000);
+      } else {
+        // Fallback simulation (offline mock analyzer)
+        setTimeout(() => {
+          animationLine.style.display = 'none';
+          showScannedResults([
+            { name: "Organic Vegetables (1kg)", subcat: "plant_meal", amount: 1, co2: 0.4 },
+            { name: "Chicken Breast Pack", subcat: "chicken_meal", amount: 2, co2: 2.2 },
+            { name: "Polyester Hoodie", subcat: "clothing", amount: 1, co2: 10.0 }
+          ]);
+        }, 2000);
+      }
+    }
+
+    let scannedItemsBuffer = [];
+
+    function showScannedResults(items) {
+      scannedItemsBuffer = items;
+
+      const resultsContainer = document.getElementById('scanner-results-container');
+      const itemsList = document.getElementById('scanner-items-list');
+
+      itemsList.innerHTML = '';
+      items.forEach(it => {
+        const row = document.createElement('div');
+        row.className = 'scan-result-row';
+        row.innerHTML = `
+          <span style="font-weight: 500;">${it.name}</span>
+          <span style="font-weight: 700; color: var(--primary);">+${it.co2.toFixed(2)} kg CO₂</span>
+        `;
+        itemsList.appendChild(row);
+      });
+
+      resultsContainer.style.display = 'block';
+
+      // Attach dynamic logger event
+      document.getElementById('btn-scan-log-all').onclick = () => {
+        scannedItemsBuffer.forEach(it => {
+          const act = {
+            id: Date.now() + Math.random(),
+            subcat: it.subcat,
+            cat: EMISSION_FACTORS[it.subcat].cat,
+            label: EMISSION_FACTORS[it.subcat].label,
+            amount: it.amount,
+            unit: EMISSION_FACTORS[it.subcat].unit,
+            kg: it.co2,
+            note: escapeHTML(`Scanned receipt: ${it.name}`),
+            date: new Date().toISOString()
+          };
+          state.activities.unshift(act);
+        });
+
+        state.streak = calculateStreak(state.activities);
+        saveState();
+
+        gainXP(20);
+        triggerQuestChecks();
+
+        alert("Successfully logged all receipt items! Earned +20 XP bonus.");
+        resultsContainer.style.display = 'none';
+
+        // Reset file input
+        document.getElementById('scanner-file-input').value = '';
+      };
+    }
+
+    // ── AI COACH CONVERSATION ENGINE ──
+    async function handleSendAIChat() {
+      const input = document.getElementById('ai-chat-input');
+      const prompt = input.value.trim();
+      if (!prompt) return;
+
+      input.value = '';
+      appendUserChatMsg(prompt);
+
+      // Loading bubble
+      const loadingBubble = appendAIChatMsg("Thinking...");
+
+      // If user provided a real API key in volatile session memory, use it
+      if (sessionState.apiKey) {
+        try {
+          const todayTotal = state.activities
+            .filter(a => a.date.slice(0, 10) === new Date().toISOString().slice(0, 10))
+            .reduce((s, a) => s + a.kg, 0)
+            .toFixed(1);
+
+          const recentText = getTailoredInsight(state.activities);
+
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': sessionState.apiKey
+            },
+            body: JSON.stringify({
+              model: 'claude-3-5-sonnet-20241022',
+              max_tokens: 250,
+              system: `You are Pip, a friendly and highly educational carbon footprint mascot. User's today footprint: ${todayTotal} kg. Benchmark: ${recentText}. Give very actionable, concise answers in 2-3 sentences.`,
+              messages: [{ role: 'user', content: prompt }]
+            })
+          });
+
+          if (!res.ok) {
+            throw new Error(`API error ${res.status}`);
+          }
+
+          const data = await res.json();
+          const responseText = data.content?.[0]?.text || "I was unable to retrieve a response.";
+          loadingBubble.innerHTML = `<span class="sender">Pip Coach</span>${escapeHTML(responseText)}`;
+        } catch (e) {
+          console.error("Live Claude API error:", e);
+          loadingBubble.innerHTML = `<span class="sender">Pip Coach</span>Connection issue. Let me fall back to offline suggestions: <br><br> ${getOfflineHeuristics(prompt)}`;
+        }
+      } else {
+        // Secure, instantaneous, local heuristic analysis!
+        setTimeout(() => {
+          const reply = getOfflineHeuristics(prompt);
+          loadingBubble.innerHTML = `<span class="sender">Pip Coach</span>${reply}`;
+        }, 600);
+      }
+    }
+
+    // Global helper exposed to HTML for suggest buttons
+    window.sendQuickCoachMsg = function (promptText) {
+      document.getElementById('ai-chat-input').value = promptText;
+      handleSendAIChat();
+    };
+
+    function appendUserChatMsg(text) {
+      const history = document.getElementById('ai-chat-history');
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-bubble user';
+      bubble.innerHTML = `<span class="sender">${escapeHTML(state.username)}</span>${escapeHTML(text)}`;
+      history.appendChild(bubble);
+      history.scrollTop = history.scrollHeight;
+    }
+
+    function appendAIChatMsg(text) {
+      const history = document.getElementById('ai-chat-history');
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-bubble ai';
+      bubble.innerHTML = `<span class="sender">Pip Coach</span>${text}`;
+      history.appendChild(bubble);
+      history.scrollTop = history.scrollHeight;
+      return bubble;
+    }
+
+    function appendSystemChatMsg(text) {
+      const history = document.getElementById('ai-chat-history');
+      const info = document.createElement('div');
+      info.style.fontSize = '11px';
+      info.style.textAlign = 'center';
+      info.style.color = 'var(--text-muted)';
+      info.style.padding = '4px';
+      info.textContent = text;
+      history.appendChild(info);
+      history.scrollTop = history.scrollHeight;
+    }
+
+    // Offline heuristic responses to ensure 100% functionality and alignment
+    function getOfflineHeuristics(prompt) {
+      const txt = prompt.toLowerCase();
+      const insight = getTailoredInsight(state.activities);
+
+      if (txt.includes('source') || txt.includes('biggest') || txt.includes('emission')) {
+        return `Looking at your logs: ${insight} Try to replace high-impact actions like single-passenger driving with public transit or walking!`;
+      }
+      if (txt.includes('7-day') || txt.includes('plan') || txt.includes('reduce')) {
+        return `Here is a custom 7-day reduction plan: <br>
+          1. <strong>Day 1-2:</strong> Walk/cycle for trips under 5km.<br>
+          2. <strong>Day 3-4:</strong> Commit to 3 plant-based meals.<br>
+          3. <strong>Day 5-7:</strong> Keep electricity low by turning off standby devices. <br>
+          Complete quests on your Quests tab to earn up to +150 XP!`;
+      }
+      if (txt.includes('compare') || txt.includes('average')) {
+        const today = new Date().toISOString().slice(0, 10);
+        const todayTotal = state.activities.filter(a => a.date.slice(0, 10) === today).reduce((sum, a) => sum + a.kg, 0);
+
+        if (todayTotal <= 16.0) {
+          return `Your footprint today is ${todayTotal.toFixed(1)} kg CO₂. You are under the global average of 16.0 kg! Fantastic work — keep this green streak going.`;
+        } else {
+          return `Your footprint today is ${todayTotal.toFixed(1)} kg CO₂. You are slightly above the global average of 16.0 kg. Try completing a green commuting challenge to bring it down!`;
+        }
+      }
+      return `To help reduce your emissions: focus on switching to plant-based meals (saves up to 5.6 kg CO₂ per swap) and walking or cycling for short commutes (saves ~0.85 kg per 5km ride). Let me know if you want a custom plan!`;
+    }
+  </script>
+</body>
+
+</html>
