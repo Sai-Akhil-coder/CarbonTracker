@@ -2,7 +2,6 @@
 
 EcoQuest is an interactive, single-page web application designed to make carbon footprint tracking engaging and fun. By incorporating gamification elements like XP, levels, badges, and leaderboards, it motivates users to build sustainable habits and reduce their environmental impact.
 
-
 ---
 
 ## ✨ Features
@@ -38,9 +37,10 @@ EcoQuest is an interactive, single-page web application designed to make carbon 
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** Vanilla HTML, CSS, and JavaScript. No frameworks.
+- **Frontend:** Vanilla HTML, CSS, and JavaScript.
+- **Backend:** Node.js HTTP server.
+- **API Proxy:** Integrated server-side endpoint (`/api/chat`) to proxy Anthropic Claude calls.
 - **Authentication:** Google Identity Services for Web (OAuth 2.0).
-- **AI (Optional):** Anthropic's Claude API for receipt verification.
 
 ---
 
@@ -48,13 +48,17 @@ EcoQuest is an interactive, single-page web application designed to make carbon 
 
 Because this application uses Google OAuth and fetches local data, it must be run on a local web server. Opening the `carbon-tracker.html` file directly from your filesystem (`file:///...`) will not work.
 
-### 1. Run on a Local Server
+### 1. Run on the Local Node Server
 
-The easiest way is to use the **Live Server** extension in Visual Studio Code.
-1. Install the Live Server extension.
-2. Right-click on `carbon-tracker.html` in the VS Code explorer.
-3. Select "Open with Live Server".
-4. Your browser will open to a URL like `http://127.0.0.1:5500`.
+The application includes a built-in Node.js server that serves the UI files and acts as a secure API proxy.
+
+1. Ensure you have Node.js installed.
+2. Open a terminal in the project directory.
+3. Start the server by running:
+   ```bash
+   node server.js
+   ```
+4. Open your browser and navigate to `http://127.0.0.1:3000`.
 
 ### 2. Configure Google Authentication
 
@@ -65,7 +69,7 @@ To enable the "Continue with Google" button, you need to create your own Google 
 3. Navigate to **APIs & Services > Credentials**.
 4. Click **+ CREATE CREDENTIALS** and select **OAuth client ID**.
 5. Set the **Application type** to **Web application**.
-6. Under **Authorized JavaScript origins**, click **ADD URI** and enter your local server's origin (e.g., `http://127.0.0.1:5500`).
+6. Under **Authorized JavaScript origins**, click **ADD URI** and enter your local server's origin (`http://127.0.0.1:3000`).
 7. Click **CREATE** and copy the generated **Client ID**.
 8. Open `carbon-tracker.html` and find the following line in the `<script>` tag:
    ```javascript
@@ -73,25 +77,22 @@ To enable the "Continue with Google" button, you need to create your own Google 
    ```
 9. Replace the placeholder with your actual Client ID.
 
-### 3. (Optional) Configure Anthropic AI
+### 3. Configure Anthropic AI
 
-The AI Receipt Scan feature requires an API key from Anthropic.
+The AI Chat Coach uses Anthropic's Claude API.
 1. Get an API key from the Anthropic Console.
-2. When you click an action that requires a bill scan, the modal will have an input field for your API key. Paste it there to use the live AI verification. If you leave it blank, the app will use a mock success response for demonstration.
+2. Provide your API key in the configuration modal inside the **AI Coach** tab.
+3. The API key is stored in volatile page memory (session state) and is passed via custom headers to the local backend proxy at `/api/chat`. The proxy forwards it securely to Anthropic, avoiding CORS issues and direct client-side network exposure.
+4. Alternatively, you can set the `ANTHROPIC_API_KEY` environment variable in your terminal before launching the server, and the proxy will automatically use it without prompting the user.
 
 ---
 
 ## 🔮 Future Improvements
 
-This project is currently a frontend-only prototype. The next major steps would be to:
+This project is currently a local prototype. The next major steps would be to:
 
-- **Integrate a Backend:** Replace `localStorage` with a real database (like Firebase/Firestore or Supabase) to allow for persistent user data across devices.
-- **Secure API Calls:** Move the Anthropic API call to a backend proxy to protect the API key.
-- **Real Leaderboards:** Implement a server-side solution to calculate and display global rankings.
+- **Integrate a Backend Database:** Replace `localStorage` with a real database (like Firebase/Firestore or Supabase) to allow for persistent user data across devices.
+- **Real Leaderboards:** Implement a server-side database solution to calculate and display global rankings.
 - **Code Refactoring:** Split the single HTML file into separate `index.html`, `styles.css`, and `script.js` files for better maintainability.
 
 ---
-
-## 📄 License
-
-This project is open source and available under the MIT License.
